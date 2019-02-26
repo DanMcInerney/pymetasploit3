@@ -10,16 +10,6 @@ from metasploit.msfrpc import MsfRpcClient, MsfRpcError
 from metasploit.msfconsole import MsfRpcConsole
 from metasploit.utils import parseargs
 
-__author__ = 'Nadeem Douba'
-__copyright__ = 'Copyright 2012, PyMetasploit Project'
-__credits__ = []
-
-__license__ = 'GPL'
-__version__ = '0.1'
-__maintainer__ = 'Nadeem Douba'
-__email__ = 'ndouba@cygnos.com'
-__status__ = 'Development'
-
 
 class MsfConsole(InteractiveConsole):
 

@@ -6,15 +6,7 @@ from numbers import Number
 
 from .msgpacks import packs, unpacks
 from msgpack import packb
-__author__ = 'Nadeem Douba'
-__copyright__ = 'Copyright 2012, PyMetasploit Project'
-__credits__ = []
 
-__license__ = 'GPL'
-__version__ = '0.4'
-__maintainer__ = 'Nadeem Douba'
-__email__ = 'ndouba@gmail.com'
-__status__ = 'Development'
 
 __all__ = [
     'MsfRpcError',
