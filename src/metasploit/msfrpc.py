@@ -5,8 +5,6 @@ import ssl
 from numbers import Number
 
 from .msgpacks import packs, unpacks
-from msgpack import packb
-
 
 __all__ = [
     'MsfRpcError',
@@ -121,6 +119,7 @@ class MsfRpcMethod(object):
     JobStop = 'job.stop'
     JobInfo = 'job.info'
     ModuleExploits = 'module.exploits'
+    ModuleEvasion = 'module.evasion'
     ModuleAuxiliary = 'module.auxiliary'
     ModulePayloads = 'module.payloads'
     ModuleEncoders = 'module.encoders'
@@ -167,9 +166,8 @@ class MsfPlugins(object):
 
 
 class MsfRpcClient(object):
-
     _headers = {
-        'Content-Type' : 'binary/message-pack'
+        'Content-Type': 'binary/message-pack'
     }
 
     def __init__(self, password, **kwargs):
@@ -215,8 +213,7 @@ class MsfRpcClient(object):
         Returns : RPC call result
         """
 
-
-        l = [ method ]
+        l = [method]
         l.extend(args)
         if method == MsfRpcMethod.AuthLogin:
             self.client.request('POST', self.uri, packs(l), self._headers)
@@ -330,19 +327,19 @@ class MsfTable(object):
         self.name = wname
 
     def dbreport(self, atype, attrs):
-        attrs.update({ 'workspace' : self.name })
+        attrs.update({'workspace': self.name})
         return self.rpc.call('db.report_%s' % atype, attrs)
 
     def dbdel(self, atype, attrs):
-        attrs.update({ 'workspace' : self.name })
+        attrs.update({'workspace': self.name})
         return self.rpc.call('db.del_%s' % atype, attrs)
 
     def dbget(self, atype, attrs):
-        attrs.update({ 'workspace' : self.name })
+        attrs.update({'workspace': self.name})
         return self.rpc.call('db.get_%s' % atype, attrs)[atype]
 
     def records(self, atypes, **kwargs):
-        kwargs.update({'workspace' : self.name})
+        kwargs.update({'workspace': self.name})
         return self.rpc.call('db.%s' % atypes, kwargs)[atypes]
 
     @property
@@ -408,7 +405,7 @@ class NotesTable(MsfTable):
         it will be created. If 'host' and 'service' are all omitted, the new Note
         will be associated with the current 'workspace'.
         """
-        kwargs.update({ 'data' : data, 'type' : type })
+        kwargs.update({'data': data, 'type': type})
         kwargs.update(kwargs.pop('service', {}))
         self.dbreport('note', kwargs)
 
@@ -481,7 +478,7 @@ class LootsTable(MsfTable):
         - info : additional information about this Loot.
         - data : the data within the Loot.
         """
-        kwargs.update({ 'path' : path, 'type' : type })
+        kwargs.update({'path': path, 'type': type})
         self.dbreport('loot', kwargs)
 
     update = report
@@ -528,7 +525,7 @@ class CredsTable(MsfTable):
         - source_id : The Vuln or Cred id of the source of this cred.
         - source_type : Either Vuln or Cred.
         """
-        kwargs.update({'host' : host, 'port' : port})
+        kwargs.update({'host': host, 'port': port})
         kwargs['pass'] = kwargs.get('password')
         self.dbreport('cred', kwargs)
 
@@ -562,7 +559,7 @@ class AuthInfoTable(MsfTable):
         - source_id : The Vuln or Cred id of the source of this cred.
         - source_type : Either Vuln or Cred.
         """
-        kwargs.update({'host' : host, 'port' : port})
+        kwargs.update({'host': host, 'port': port})
         self.dbreport('auth_info', kwargs)
 
     update = report
@@ -604,7 +601,7 @@ class HostsTable(MsfTable):
         - scope : interface identifier for link-local IPv6.
         - virtual_host : the name of the VM host software, e.g. 'VMWare', 'QEMU', 'Xen', etc.
         """
-        kwargs.update({'host' : host})
+        kwargs.update({'host': host})
         self.dbreport('host', kwargs)
 
     def delete(self, **kwargs):
@@ -616,7 +613,7 @@ class HostsTable(MsfTable):
         - address : the address associated with a Note, not required if 'host' or 'addresses' is specified.
         - addresses : a list of addresses associated with Notes, not required if 'host' or 'address' is specified.
         """
-        if not any([ i in kwargs for i in ('host', 'address', 'addresses')]):
+        if not any([i in kwargs for i in ('host', 'address', 'addresses')]):
             raise TypeError('Expected host, address, or addresses.')
         self.dbdel('host', kwargs)
 
@@ -629,7 +626,7 @@ class HostsTable(MsfTable):
         - address : the address associated with a Note, not required if 'host' or 'addr' is specified.
         - addr : same as 'address', not required if 'host' or 'address' is specified.
         """
-        if not any([ i in kwargs for i in ('addr', 'address', 'host')]):
+        if not any([i in kwargs for i in ('addr', 'address', 'host')]):
             raise TypeError('Expected addr, address, or host.')
         return self.dbget('host', kwargs)
 
@@ -670,7 +667,7 @@ class ServicesTable(MsfTable):
         - name : the application layer protocol (e.g. ssh, mssql, smb)
         - sname : an alias for the above
         """
-        kwargs.update({'host' : host, 'port' : port, 'proto' : proto})
+        kwargs.update({'host': host, 'port': port, 'proto': proto})
         self.dbreport('service', kwargs)
 
     def delete(self, **kwargs):
@@ -688,7 +685,7 @@ class ServicesTable(MsfTable):
         - proto : used along with 'port', specifies a service.
         """
         if not any([i in kwargs for i in ('host', 'address', 'addresses')]) and \
-           not all([i in kwargs for i in ('proto', 'port')]):
+                not all([i in kwargs for i in ('proto', 'port')]):
             raise TypeError('Expected host or port/proto pair.')
         self.dbdel('service', kwargs)
 
@@ -711,7 +708,7 @@ class ServicesTable(MsfTable):
         - names : a comma separated string of service names.
         """
         if not any([i in kwargs for i in ('host', 'addr', 'address')]) and \
-           not all([i in kwargs for i in ('proto', 'port')]):
+                not all([i in kwargs for i in ('proto', 'port')]):
             raise TypeError('Expected host or port/proto pair.')
         return self.dbget('service', kwargs)
 
@@ -750,7 +747,7 @@ class VulnsTable(MsfTable):
         - info : a human readable description of the vuln, free-form text.
         - refs : an array of Ref objects or string names of references.
         """
-        kwargs.update({'host' : host, 'name' : name})
+        kwargs.update({'host': host, 'name': name})
         self.dbreport('vuln', kwargs)
 
     def delete(self, **kwargs):
@@ -762,7 +759,7 @@ class VulnsTable(MsfTable):
         - address : the address associated with a Note, not required if 'host' or 'addresses' is specified.
         - addresses : a list of addresses associated with Notes, not required if 'host' or 'address' is specified.
         """
-        if not any([ i in kwargs for i in ('host', 'address', 'addresses')]):
+        if not any([i in kwargs for i in ('host', 'address', 'addresses')]):
             raise TypeError('Expected host, address, or addresses.')
         self.dbdel('vuln', kwargs)
 
@@ -775,7 +772,7 @@ class VulnsTable(MsfTable):
         - address : the address associated with a Note, not required if 'host' or 'addr' is specified.
         - addr : same as 'address', not required if 'host' or 'address' is specified.
         """
-        if not any([ i in kwargs for i in ('addr', 'address', 'host')]):
+        if not any([i in kwargs for i in ('addr', 'address', 'host')]):
             raise TypeError('Expected addr, address, or host.')
         return self.dbreport('vuln', kwargs)
 
@@ -847,7 +844,7 @@ class ClientsTable(MsfTable):
 
         Returns a Client.
         """
-        kwargs.update({'host' : host, 'ua_string' : ua_string})
+        kwargs.update({'host': host, 'ua_string': ua_string})
         self.dbreport('client', kwargs)
 
     def delete(self, **kwargs):
@@ -869,7 +866,7 @@ class ClientsTable(MsfTable):
         - host : the host associated with a Note, not required if 'address' or 'addr' is specified.
         - ua_string : the value of the User-Agent header
         """
-        if not any([ i in kwargs for i in ('host', 'ua_string')]):
+        if not any([i in kwargs for i in ('host', 'ua_string')]):
             raise TypeError('Expected host or ua_string.')
         return self.dbreport('client', kwargs)
 
@@ -960,14 +957,14 @@ class Workspace(object):
         """
         Delete the current workspace.
         """
-        self.rpc.call(MsfRpcMethod.DbDelWorkspace, {'workspace' : self.name})
+        self.rpc.call(MsfRpcMethod.DbDelWorkspace, {'workspace': self.name})
 
     def importdata(self, data):
-        self.rpc.call(MsfRpcMethod.DbImportData, {'workspace' : self.name, 'data' : data})
+        self.rpc.call(MsfRpcMethod.DbImportData, {'workspace': self.name, 'data': data})
 
     def importfile(self, fname):
-        r = file(fname, mode='r')
-        self.rpc.call(MsfRpcMethod.DbImportData, {'workspace' : self.name, 'data' : r.read()})
+        r = open(fname, mode='r')
+        self.rpc.call(MsfRpcMethod.DbImportData, {'workspace': self.name, 'data': r.read()})
         r.close()
 
 
@@ -1064,9 +1061,9 @@ class DbManager(MsfManager):
         - database : the database name (default: 'msf')
         - port : the port that the server is running on (default: 5432)
         """
-        runopts = { 'username': username, 'database' : database }
+        runopts = {'username': username, 'database': database}
         runopts.update(kwargs)
-        res=self.rpc.call(MsfRpcMethod.DbConnect, runopts)
+        res = self.rpc.call(MsfRpcMethod.DbConnect, runopts)
         return res['result'] == 'success'
 
     @property
@@ -1078,7 +1075,7 @@ class DbManager(MsfManager):
 
     @driver.setter
     def driver(self, d):
-        self.rpc.call(MsfRpcMethod.DbDriver, {'driver' : d})
+        self.rpc.call(MsfRpcMethod.DbDriver, {'driver': d})
 
     @property
     def status(self):
@@ -1228,7 +1225,6 @@ class JobManager(MsfManager):
 
 
 class CoreManager(MsfManager):
-    
 
     @property
     def version(self):
@@ -1323,7 +1319,7 @@ class MsfModule(object):
         self.modulename = mname
         self.rpc = rpc
         self._info = rpc.call(MsfRpcMethod.ModuleInfo, mtype, mname)
-        property_attributes = ["advanced", "evasion", "options", "required","runoptions"]
+        property_attributes = ["advanced", "evasion", "options", "required", "runoptions"]
         for k in self._info:
             if k not in property_attributes:
                 # don't try to set property attributes
@@ -1464,9 +1460,9 @@ class MsfModule(object):
                         if v is None or (isinstance(v, str) and not v):
                             continue
                         if k not in runopts or runopts[k] is None or \
-                           (isinstance(runopts[k], str) and not runopts[k]):
+                                (isinstance(runopts[k], str) and not runopts[k]):
                             runopts[k] = v
-#                    runopts.update(payload.runoptions)
+                #                    runopts.update(payload.runoptions)
                 elif isinstance(payload, str):
                     if payload not in self.payloads:
                         raise ValueError('Invalid payload (%s) for given target (%d).' % (payload, self.target))
@@ -1495,7 +1491,7 @@ class ExploitModule(MsfModule):
         """
         A list of compatible payloads.
         """
-#        return self.rpc.call(MsfRpcMethod.ModuleCompatiblePayloads, self.modulename)['payloads']
+        #        return self.rpc.call(MsfRpcMethod.ModuleCompatiblePayloads, self.modulename)['payloads']
         return self.targetpayloads(self.target)
 
     @property
@@ -1611,6 +1607,13 @@ class ModuleManager(MsfManager):
         A list of exploit modules.
         """
         return self.rpc.call(MsfRpcMethod.ModuleExploits)['modules']
+
+    @property
+    def evasion(self):
+        """
+        A list of exploit modules.
+        """
+        return self.rpc.call(MsfRpcMethod.ModuleEvasion)['modules']
 
     @property
     def payloads(self):
@@ -1862,12 +1865,12 @@ class SessionManager(MsfManager):
                 if s[k]['uuid'] == id:
                     if s[id]['type'] == 'meterpreter':
                         return MeterpreterSession(id, self.rpc, s)
-                    elif s[id]['type']  == 'shell':
+                    elif s[id]['type'] == 'shell':
                         return ShellSession(id, self.rpc, s)
             raise KeyError('Session ID (%s) does not exist' % id)
         if s[id]['type'] == 'meterpreter':
             return MeterpreterSession(id, self.rpc, s)
-        elif s[id]['type']  == 'shell':
+        elif s[id]['type'] == 'shell':
             return ShellSession(id, self.rpc, s)
         raise NotImplementedError('Could not determine session type: %s' % s[id]['type'])
 
@@ -1954,7 +1957,6 @@ class ConsoleManager(MsfManager):
         """
         s = self.list
         if cid is None:
-
             return MsfConsole(self.rpc)
         if cid not in s:
             raise KeyError('Console ID (%s) does not exist' % cid)
