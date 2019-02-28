@@ -35,7 +35,7 @@ class MsfConsole(InteractiveConsole):
     def save_history(self, histfile):
         readline.write_history_file(histfile)
         del self.client
-        print 'bye!'
+        print('bye!')
 
     def callback(self, d):
         stdout.write('\n%s' % d['data'])
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     try:
         m = MsfConsole(o.__dict__.pop('password'), **o.__dict__)
         m.interact('')
-    except MsfRpcError, m:
-        print str(m)
+    except MsfRpcError as m:
+        print(str(m))
         exit(-1)
     exit(0)
