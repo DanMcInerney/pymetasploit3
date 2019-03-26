@@ -1681,7 +1681,7 @@ class ModuleManager(MsfManager):
 
 class MsfSession(object):
 
-    def __init__(self, id, rpc, sd):
+    def __init__(self, sid, rpc, sd):
         """
         Initialize a meterpreter or shell session.
 
@@ -1690,7 +1690,7 @@ class MsfSession(object):
         - rpc : the msfrpc client object.
         - sd : the session description
         """
-        self.id = id
+        self.sid = sid
         self.rpc = rpc
         self.__dict__.update(sd)
 
@@ -1698,18 +1698,18 @@ class MsfSession(object):
         """
         Stop a meterpreter or shell session.
         """
-        return self.rpc.call(MsfRpcMethod.SessionStop, self.id)
+        return self.rpc.call(MsfRpcMethod.SessionStop, self.sid)
 
     @property
     def modules(self):
         """
         A list of compatible session modules.
         """
-        return self.rpc.call(MsfRpcMethod.SessionCompatibleModules, self.id)['modules']
+        return self.rpc.call(MsfRpcMethod.SessionCompatibleModules, self.sid)['modules']
 
     @property
     def ring(self):
-        return SessionRing(self.rpc, self.id)
+        return SessionRing(self.rpc, self.sid)
 
 
 class SessionRing(object):
