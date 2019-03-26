@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from http.client import HTTPConnection, HTTPSConnection
 import ssl
@@ -309,7 +309,7 @@ class MsfRpcClient(object):
                 raise MsfRpcError('Login failed.')
         else:
             try:
-                r = self.call(MsfRpcMethod.DbStatus)
+                self.call(MsfRpcMethod.DbStatus)
             except MsfRpcError:
                 raise MsfRpcError('Login failed.')
 
@@ -337,7 +337,7 @@ class MsfTable(object):
     def dbget(self, atype, attrs):
         attrs.update({'workspace': self.name})
         return self.rpc.call('db.get_%s' % atype, attrs)[atype]
-
+    
     def records(self, atypes, **kwargs):
         kwargs.update({'workspace': self.name})
         return self.rpc.call('db.%s' % atypes, kwargs)[atypes]
@@ -381,12 +381,12 @@ class NotesTable(MsfTable):
             kwargs['port'] = True
         return super(NotesTable, self).records('notes', **kwargs)
 
-    def report(self, type, data, **kwargs):
+    def report(self, rtype, data, **kwargs):
         """
         Report a Note to the database.  Notes can be tied to a Workspace, Host, or Service.
 
         Mandatory Arguments:
-        - type : The type of note, e.g. 'smb_peer_os'.
+        - rtype : The type of note, e.g. 'smb_peer_os'.
         - data : whatever it is you're making a note of.
 
         Optional Keyword Arguments:
@@ -405,7 +405,7 @@ class NotesTable(MsfTable):
         it will be created. If 'host' and 'service' are all omitted, the new Note
         will be associated with the current 'workspace'.
         """
-        kwargs.update({'data': data, 'type': type})
+        kwargs.update({'data': data, 'type': rtype})
         kwargs.update(kwargs.pop('service', {}))
         self.dbreport('note', kwargs)
 
@@ -1681,7 +1681,7 @@ class ModuleManager(MsfManager):
 
 class MsfSession(object):
 
-    def __init__(self, id, rpc, sd):
+    def __init__(self, sid, rpc, sd):
         """
         Initialize a meterpreter or shell session.
 
@@ -1690,7 +1690,7 @@ class MsfSession(object):
         - rpc : the msfrpc client object.
         - sd : the session description
         """
-        self.id = id
+        self.sid = sid
         self.rpc = rpc
         self.__dict__.update(sd)
 
@@ -1698,25 +1698,25 @@ class MsfSession(object):
         """
         Stop a meterpreter or shell session.
         """
-        return self.rpc.call(MsfRpcMethod.SessionStop, self.id)
+        return self.rpc.call(MsfRpcMethod.SessionStop, self.sid)
 
     @property
     def modules(self):
         """
         A list of compatible session modules.
         """
-        return self.rpc.call(MsfRpcMethod.SessionCompatibleModules, self.id)['modules']
+        return self.rpc.call(MsfRpcMethod.SessionCompatibleModules, self.sid)['modules']
 
     @property
     def ring(self):
-        return SessionRing(self.rpc, self.id)
+        return SessionRing(self.rpc, self.sid)
 
 
 class SessionRing(object):
 
     def __init__(self, rpc, sessionid):
         self.rpc = rpc
-        self.id = sessionid
+        self.sid = sessionid
 
     def read(self, seq=None):
         """
@@ -1726,8 +1726,8 @@ class SessionRing(object):
         - seq : the sequence ID of the ring (default: 0)
         """
         if seq is not None:
-            return self.rpc.call(MsfRpcMethod.SessionRingRead, self.id, seq)
-        return self.rpc.call(MsfRpcMethod.SessionRingRead, self.id)
+            return self.rpc.call(MsfRpcMethod.SessionRingRead, self.sid, seq)
+        return self.rpc.call(MsfRpcMethod.SessionRingRead, self.sid)
 
     def put(self, line):
         """
@@ -1736,20 +1736,20 @@ class SessionRing(object):
         Mandatory Arguments:
         - line : arbitrary data.
         """
-        self.rpc.call(MsfRpcMethod.SessionRingPut, self.id, line)
+        self.rpc.call(MsfRpcMethod.SessionRingPut, self.sid, line)
 
     @property
     def last(self):
         """
         Returns the last sequence ID in the session ring.
         """
-        return int(self.rpc.call(MsfRpcMethod.SessionRingLast, self.id)['seq'])
+        return int(self.rpc.call(MsfRpcMethod.SessionRingLast, self.sid)['seq'])
 
     def clear(self):
         """
         Clear the session ring.
         """
-        return self.rpc.call(MsfRpcMethod.SessionRingClear, self.id)
+        return self.rpc.call(MsfRpcMethod.SessionRingClear, self.sid)
 
 
 class MeterpreterSession(MsfSession):
@@ -1758,7 +1758,7 @@ class MeterpreterSession(MsfSession):
         """
         Read data from the meterpreter session.
         """
-        return self.rpc.call(MsfRpcMethod.SessionMeterpreterRead, self.id)['data']
+        return self.rpc.call(MsfRpcMethod.SessionMeterpreterRead, self.sid)['data']
 
     def write(self, data):
         """
@@ -1767,7 +1767,7 @@ class MeterpreterSession(MsfSession):
         Mandatory Arguments:
         - data : arbitrary data or commands
         """
-        self.rpc.call(MsfRpcMethod.SessionMeterpreterWrite, self.id, data)
+        self.rpc.call(MsfRpcMethod.SessionMeterpreterWrite, self.sid, data)
 
     def runsingle(self, data):
         """
@@ -1776,7 +1776,7 @@ class MeterpreterSession(MsfSession):
         Mandatory Arguments:
         - data : arbitrary data or command
         """
-        self.rpc.call(MsfRpcMethod.SessionMeterpreterRunSingle, self.id, data)
+        self.rpc.call(MsfRpcMethod.SessionMeterpreterRunSingle, self.sid, data)
         return self.read()
 
     def runscript(self, path):
@@ -1786,7 +1786,7 @@ class MeterpreterSession(MsfSession):
         Mandatory Arguments:
         - path : path to a meterpreter script on the msfrpcd host.
         """
-        self.rpc.call(MsfRpcMethod.SessionMeterpreterScript, self.id, path)
+        self.rpc.call(MsfRpcMethod.SessionMeterpreterScript, self.sid, path)
         return self.read()
 
     @property
@@ -1794,19 +1794,19 @@ class MeterpreterSession(MsfSession):
         """
         The operating system path separator.
         """
-        return self.rpc.call(MsfRpcMethod.SessionMeterpreterDirectorySeparator, self.id)['separator']
+        return self.rpc.call(MsfRpcMethod.SessionMeterpreterDirectorySeparator, self.sid)['separator']
 
     def detach(self):
         """
         Detach the meterpreter session.
         """
-        return self.rpc.call(MsfRpcMethod.SessionMeterpreterSessionDetach, self.id)
+        return self.rpc.call(MsfRpcMethod.SessionMeterpreterSessionDetach, self.sid)
 
     def kill(self):
         """
         Kill the meterpreter session.
         """
-        self.rpc.call(MsfRpcMethod.SessionMeterpreterSessionKill, self.id)
+        self.rpc.call(MsfRpcMethod.SessionMeterpreterSessionKill, self.sid)
 
     def tabs(self, line):
         """
@@ -1815,7 +1815,7 @@ class MeterpreterSession(MsfSession):
         Mandatory Arguments:
         - line : a partial command line for completion.
         """
-        return self.rpc.call(MsfRpcMethod.SessionMeterpreterTabs, self.id, line)['tabs']
+        return self.rpc.call(MsfRpcMethod.SessionMeterpreterTabs, self.sid, line)['tabs']
 
 
 class ShellSession(MsfSession):
@@ -1824,7 +1824,7 @@ class ShellSession(MsfSession):
         """
         Read data from the shell session.
         """
-        return self.rpc.call(MsfRpcMethod.SessionShellRead, self.id)['data']
+        return self.rpc.call(MsfRpcMethod.SessionShellRead, self.sid)['data']
 
     def write(self, data):
         """
@@ -1833,13 +1833,13 @@ class ShellSession(MsfSession):
         Mandatory Arguments:
         - data : arbitrary data or commands
         """
-        self.rpc.call(MsfRpcMethod.SessionShellWrite, self.id, data)
+        self.rpc.call(MsfRpcMethod.SessionShellWrite, self.sid, data)
 
     def upgrade(self, lhost, lport):
         """
         Upgrade the current shell session.
         """
-        self.rpc.call(MsfRpcMethod.SessionShellUpgrade, self.id, lhost, lport)
+        self.rpc.call(MsfRpcMethod.SessionShellUpgrade, self.sid, lhost, lport)
         return self.read()
 
 
