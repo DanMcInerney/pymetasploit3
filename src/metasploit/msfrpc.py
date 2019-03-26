@@ -1716,7 +1716,7 @@ class SessionRing(object):
 
     def __init__(self, rpc, sessionid):
         self.rpc = rpc
-        self.id = sessionid
+        self.sid = sessionid
 
     def read(self, seq=None):
         """
@@ -1726,8 +1726,8 @@ class SessionRing(object):
         - seq : the sequence ID of the ring (default: 0)
         """
         if seq is not None:
-            return self.rpc.call(MsfRpcMethod.SessionRingRead, self.id, seq)
-        return self.rpc.call(MsfRpcMethod.SessionRingRead, self.id)
+            return self.rpc.call(MsfRpcMethod.SessionRingRead, self.sid, seq)
+        return self.rpc.call(MsfRpcMethod.SessionRingRead, self.sid)
 
     def put(self, line):
         """
@@ -1736,20 +1736,20 @@ class SessionRing(object):
         Mandatory Arguments:
         - line : arbitrary data.
         """
-        self.rpc.call(MsfRpcMethod.SessionRingPut, self.id, line)
+        self.rpc.call(MsfRpcMethod.SessionRingPut, self.sid, line)
 
     @property
     def last(self):
         """
         Returns the last sequence ID in the session ring.
         """
-        return int(self.rpc.call(MsfRpcMethod.SessionRingLast, self.id)['seq'])
+        return int(self.rpc.call(MsfRpcMethod.SessionRingLast, self.sid)['seq'])
 
     def clear(self):
         """
         Clear the session ring.
         """
-        return self.rpc.call(MsfRpcMethod.SessionRingClear, self.id)
+        return self.rpc.call(MsfRpcMethod.SessionRingClear, self.sid)
 
 
 class MeterpreterSession(MsfSession):
@@ -1758,7 +1758,7 @@ class MeterpreterSession(MsfSession):
         """
         Read data from the meterpreter session.
         """
-        return self.rpc.call(MsfRpcMethod.SessionMeterpreterRead, self.id)['data']
+        return self.rpc.call(MsfRpcMethod.SessionMeterpreterRead, self.sid)['data']
 
     def write(self, data):
         """
@@ -1767,7 +1767,7 @@ class MeterpreterSession(MsfSession):
         Mandatory Arguments:
         - data : arbitrary data or commands
         """
-        self.rpc.call(MsfRpcMethod.SessionMeterpreterWrite, self.id, data)
+        self.rpc.call(MsfRpcMethod.SessionMeterpreterWrite, self.sid, data)
 
     def runsingle(self, data):
         """
@@ -1776,7 +1776,7 @@ class MeterpreterSession(MsfSession):
         Mandatory Arguments:
         - data : arbitrary data or command
         """
-        self.rpc.call(MsfRpcMethod.SessionMeterpreterRunSingle, self.id, data)
+        self.rpc.call(MsfRpcMethod.SessionMeterpreterRunSingle, self.sid, data)
         return self.read()
 
     def runscript(self, path):
@@ -1786,7 +1786,7 @@ class MeterpreterSession(MsfSession):
         Mandatory Arguments:
         - path : path to a meterpreter script on the msfrpcd host.
         """
-        self.rpc.call(MsfRpcMethod.SessionMeterpreterScript, self.id, path)
+        self.rpc.call(MsfRpcMethod.SessionMeterpreterScript, self.sid, path)
         return self.read()
 
     @property
@@ -1794,19 +1794,19 @@ class MeterpreterSession(MsfSession):
         """
         The operating system path separator.
         """
-        return self.rpc.call(MsfRpcMethod.SessionMeterpreterDirectorySeparator, self.id)['separator']
+        return self.rpc.call(MsfRpcMethod.SessionMeterpreterDirectorySeparator, self.sid)['separator']
 
     def detach(self):
         """
         Detach the meterpreter session.
         """
-        return self.rpc.call(MsfRpcMethod.SessionMeterpreterSessionDetach, self.id)
+        return self.rpc.call(MsfRpcMethod.SessionMeterpreterSessionDetach, self.sid)
 
     def kill(self):
         """
         Kill the meterpreter session.
         """
-        self.rpc.call(MsfRpcMethod.SessionMeterpreterSessionKill, self.id)
+        self.rpc.call(MsfRpcMethod.SessionMeterpreterSessionKill, self.sid)
 
     def tabs(self, line):
         """
@@ -1815,7 +1815,7 @@ class MeterpreterSession(MsfSession):
         Mandatory Arguments:
         - line : a partial command line for completion.
         """
-        return self.rpc.call(MsfRpcMethod.SessionMeterpreterTabs, self.id, line)['tabs']
+        return self.rpc.call(MsfRpcMethod.SessionMeterpreterTabs, self.sid, line)['tabs']
 
 
 class ShellSession(MsfSession):
@@ -1824,7 +1824,7 @@ class ShellSession(MsfSession):
         """
         Read data from the shell session.
         """
-        return self.rpc.call(MsfRpcMethod.SessionShellRead, self.id)['data']
+        return self.rpc.call(MsfRpcMethod.SessionShellRead, self.sid)['data']
 
     def write(self, data):
         """
@@ -1833,13 +1833,13 @@ class ShellSession(MsfSession):
         Mandatory Arguments:
         - data : arbitrary data or commands
         """
-        self.rpc.call(MsfRpcMethod.SessionShellWrite, self.id, data)
+        self.rpc.call(MsfRpcMethod.SessionShellWrite, self.sid, data)
 
     def upgrade(self, lhost, lport):
         """
         Upgrade the current shell session.
         """
-        self.rpc.call(MsfRpcMethod.SessionShellUpgrade, self.id, lhost, lport)
+        self.rpc.call(MsfRpcMethod.SessionShellUpgrade, self.sid, lhost, lport)
         return self.read()
 
 
