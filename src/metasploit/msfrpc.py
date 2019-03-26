@@ -381,12 +381,12 @@ class NotesTable(MsfTable):
             kwargs['port'] = True
         return super(NotesTable, self).records('notes', **kwargs)
 
-    def report(self, type, data, **kwargs):
+    def report(self, rtype, data, **kwargs):
         """
         Report a Note to the database.  Notes can be tied to a Workspace, Host, or Service.
 
         Mandatory Arguments:
-        - type : The type of note, e.g. 'smb_peer_os'.
+        - rtype : The type of note, e.g. 'smb_peer_os'.
         - data : whatever it is you're making a note of.
 
         Optional Keyword Arguments:
@@ -405,7 +405,7 @@ class NotesTable(MsfTable):
         it will be created. If 'host' and 'service' are all omitted, the new Note
         will be associated with the current 'workspace'.
         """
-        kwargs.update({'data': data, 'type': type})
+        kwargs.update({'data': data, 'type': rtype})
         kwargs.update(kwargs.pop('service', {}))
         self.dbreport('note', kwargs)
 
