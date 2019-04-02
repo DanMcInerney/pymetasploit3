@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 from numbers import Number
+from src.metasploit.utils import *
 import requests
 import msgpack
+import uuid
 from IPython import embed
 
 __all__ = [
@@ -213,25 +215,26 @@ class MsfRpcClient(object):
 
         opts[:] = []  # Clear opts list
 
-        return self.convert(self.decode(r.content)) # convert all keys/vals to utf8
-
-    def convert(self, data):
-        """
-        Converts all bytestrings to utf8
-        """
-        if isinstance(data, bytes):  return data.decode()
-        if isinstance(data, dict):   return dict(map(self.convert, data.items()))
-        if isinstance(data, tuple):  return map(self.convert, data)
-        return data
+        return convert(self.decode(r.content))# convert all keys/vals to utf8
 
     def login(self, user, password):
         auth = self.call(MsfRpcMethod.AuthLogin, [user, password])
         try:
             if auth['result'] == 'success':
                 self.token = auth['token']
+                token = self.add_perm_token()
+                self.token = token
                 return True
         except:
             raise MsfAuthError("MsfRPC: Authentication failed")
+
+    def add_perm_token(self):
+        """
+        Add a permanent UUID4 API token
+        """
+        token = str(uuid.uuid4())
+        self.call(MsfRpcMethod.AuthTokenAdd, [token])
+        return token
 
     def logout(self):
         """

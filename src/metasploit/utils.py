@@ -3,7 +3,8 @@
 from optparse import OptionParser
 
 __all__ = [
-    'parseargs'
+    'parseargs',
+    'convert'
 ]
 
 
@@ -20,3 +21,14 @@ def parseargs():
         p.print_help()
         exit(-1)
     return o
+
+def convert(data):
+    """
+    Converts all bytestrings to utf8
+    """
+    if isinstance(data, bytes):  return data.decode()
+    if isinstance(data, list):   return list(map(convert, data))
+    if isinstance(data, set):    return set(map(convert, data))
+    if isinstance(data, dict):   return dict(map(convert, data.items()))
+    if isinstance(data, tuple):  return map(convert, data)
+    return data
