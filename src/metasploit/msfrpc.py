@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
-from http.client import HTTPConnection, HTTPSConnection
-import ssl
 from numbers import Number
-
-from .msgpacks import packs, unpacks
+import requests
+import msgpack
+from IPython import embed
 
 __all__ = [
     'MsfRpcError',
@@ -165,73 +164,80 @@ class MsfPlugins(object):
     DbCredCollect = "db_credcollect"
 
 
+class MsfError(Exception):
+    def __init__(self,msg):
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+
+class MsfAuthError(MsfError):
+    def __init__(self,msg):
+        self.msg = msg
+
+
 class MsfRpcClient(object):
-    _headers = {
-        'Content-Type': 'binary/message-pack'
-    }
 
     def __init__(self, password, **kwargs):
-        """
-        Connects and authenticates to a Metasploit RPC daemon.
-
-        Mandatory Arguments:
-        - password : the password used to authenticate to msfrpcd
-
-        Optional Keyword Arguments:
-        - username : the username used to authenticate to msfrpcd (default: msf)msfrpcd -P mypassword -n -f -a 127.0.0.1
-        - uri : the msfrpcd URI (default: /api/)
-        - port : the remote msfrpcd port to connect to (default: 55553)
-        - server : the remote server IP address hosting msfrpcd (default: localhost)
-        - ssl : if true uses SSL else regular HTTP (default: SSL enabled)
-        - verify : if true, verify SSL cert when using SSL (default: False)
-        """
         self.uri = kwargs.get('uri', '/api/')
-        self.port = kwargs.get('port', 55553)
-        self.server = kwargs.get('server', '127.0.0.1')
-        self.ssl = kwargs.get('ssl', True)
-        self.verify_ssl = kwargs.get('verify', False)
-        self.sessionid = kwargs.get('token')
-        if self.ssl:
-            if self.verify_ssl:
-                self.client = HTTPSConnection(self.server, self.port)
-            else:
-                self.client = HTTPSConnection(self.server, self.port, context=ssl._create_unverified_context())
-        else:
-            self.client = HTTPConnection(self.server, self.port)
+        self.port = kwargs.get('port', 55552)
+        self.host = kwargs.get('server', '127.0.0.1')
+        self.ssl = kwargs.get('ssl', False)
+        self.token = kwargs.get('token')
+        self.headers = {"Content-type": "binary/message-pack"}
         self.login(kwargs.get('username', 'msf'), password)
 
-    def call(self, method, *args):
+    def encode(self, data):
+        return msgpack.packb(data)
+
+    def decode(self, data):
+        return msgpack.unpackb(data)
+
+    def call(self, method, opts=[]):
+        if method != 'auth.login':
+            if self.token is None:
+                raise MsfAuthError("MsfRPC: Not Authenticated")
+
+        if method != "auth.login":
+            opts.insert(0, self.token)
+
+        if self.ssl is True:
+            url = "https://%s:%s%s" % (self.host, self.port, self.uri)
+        else:
+            url = "http://%s:%s%s" % (self.host, self.port, self.uri)
+
+        opts.insert(0, method)
+        payload = self.encode(opts)
+
+        r = requests.post(url, data=payload, headers=self.headers)
+
+        opts[:] = []  # Clear opts list
+
+        return self.convert(self.decode(r.content)) # convert all keys/vals to utf8
+
+    def convert(self, data):
         """
-        Builds an RPC request and retrieves the result.
-
-        Mandatory Arguments:
-        - method : the RPC call method name (e.g. db.clients)
-
-        Optional Arguments:
-        - *args : the RPC method's parameters if necessary
-
-        Returns : RPC call result
+        Converts all bytestrings to utf8
         """
+        if isinstance(data, bytes):  return data.decode()
+        if isinstance(data, dict):   return dict(map(self.convert, data.items()))
+        if isinstance(data, tuple):  return map(self.convert, data)
+        return data
 
-        l = [method]
-        l.extend(args)
-        if method == MsfRpcMethod.AuthLogin:
-            self.client.request('POST', self.uri, packs(l), self._headers)
-            r = self.client.getresponse()
-            if r.status == 200:
-                return unpacks(r.read())
-            raise MsfRpcError('An unknown error has occurred while logging in.')
-        elif self.authenticated:
-            l.insert(1, self.sessionid)
-            self.client.request('POST', self.uri, packs(l), self._headers)
-            r = self.client.getresponse()
-            if r.status == 200:
-                result = unpacks(r.read())
-                if 'error' in result:
-                    raise MsfRpcError(result['error_message'])
-                return result
-            raise MsfRpcError('An unknown error has occurred while performing the RPC call.')
-        raise MsfRpcError('You cannot perform this call because you are not authenticated.')
+    def login(self, user, password):
+        auth = self.call(MsfRpcMethod.AuthLogin, [user, password])
+        try:
+            if auth['result'] == 'success':
+                self.token = auth['token']
+                return True
+        except:
+            raise MsfAuthError("MsfRPC: Authentication failed")
+
+    def logout(self):
+        """
+        Logs the current user out. Note: do not call directly.
+        """
+        self.call(MsfRpcMethod.AuthLogout, self.token)
 
     @property
     def core(self):
@@ -273,7 +279,7 @@ class MsfRpcClient(object):
         """
         Whether or not this client is authenticated.
         """
-        return self.sessionid is not None
+        return self.token is not None
 
     @property
     def plugins(self):
@@ -295,29 +301,6 @@ class MsfRpcClient(object):
         The msf authentication manager.
         """
         return AuthManager(self)
-
-    def login(self, username, password):
-        """
-        Authenticates and reauthenticates the user to msfrpcd.
-        """
-        if self.sessionid is None:
-            r = self.call(MsfRpcMethod.AuthLogin, username, password)
-            try:
-                if r['result'] == 'success':
-                    self.sessionid = r['token']
-            except KeyError:
-                raise MsfRpcError('Login failed.')
-        else:
-            try:
-                self.call(MsfRpcMethod.DbStatus)
-            except MsfRpcError:
-                raise MsfRpcError('Login failed.')
-
-    def logout(self):
-        """
-        Logs the current user out. Note: do not call directly.
-        """
-        self.call(MsfRpcMethod.AuthLogout, self.sessionid)
 
 
 class MsfTable(object):
@@ -1714,9 +1697,9 @@ class MsfSession(object):
 
 class SessionRing(object):
 
-    def __init__(self, rpc, sessionid):
+    def __init__(self, rpc, token):
         self.rpc = rpc
-        self.sid = sessionid
+        self.sid = token
 
     def read(self, seq=None):
         """

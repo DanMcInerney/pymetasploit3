@@ -80,7 +80,7 @@ look at its underbelly:
 ```python
 >>> [m for m in dir(client) if not m.startswith('_')]
 ['auth', 'authenticated', 'call', 'client', 'consoles', 'core', 'db', 'jobs', 'login', 'logout', 'modules', 'plugins',
-'port', 'server', 'sessionid', 'sessions', 'ssl', 'uri']
+'port', 'server', 'token', 'sessions', 'ssl', 'uri']
 >>>
 ```
 

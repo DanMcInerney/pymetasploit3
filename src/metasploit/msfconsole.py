@@ -12,7 +12,7 @@ class MsfRpcConsoleType:
 
 class MsfRpcConsole(object):
 
-    def __init__(self, rpc, sessionid=None, cb=None):
+    def __init__(self, rpc, token=None, cb=None):
         """
         Emulates the msfconsole in msf except over RPC.
 
@@ -25,8 +25,8 @@ class MsfRpcConsole(object):
 
         self.callback = cb
 
-        if sessionid is not None:
-            self.console = rpc.sessions.session(sessionid)
+        if token is not None:
+            self.console = rpc.sessions.session(token)
             self.type_ = MsfRpcConsoleType.Shell if isinstance(self.console, ShellSession) else MsfRpcConsoleType.Meterpreter
             self.prompt = '>>> '
             self.callback(dict(data='', prompt=self.prompt))
