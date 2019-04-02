@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
 from optparse import OptionParser
+import msgpack
 
 __all__ = [
     'parseargs',
-    'convert'
+    'convert',
+    'decode',
+    'encode'
 ]
 
 
@@ -32,3 +35,9 @@ def convert(data):
     if isinstance(data, dict):   return dict(map(convert, data.items()))
     if isinstance(data, tuple):  return map(convert, data)
     return data
+
+def encode(data):
+    return msgpack.packb(data)
+
+def decode(data):
+    return msgpack.unpackb(data)

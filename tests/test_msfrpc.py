@@ -34,14 +34,9 @@ def test_consolecreate(client):
 def test_consolelist(client):
     conlist = client.call(MsfRpcMethod.ConsoleList)
     assert 'consoles' in conlist
-    assert len(conlist['consoles']) > 1
+    assert len(conlist['consoles']) > 0
 
-# def test_consoleread(client):
-#     cid = get_cid(client)
-#     conread = client.call(MsfRpcMethod.ConsoleRead, [cid])
-#     assert 'data' in conread
-
-def test_consolewrite(client):
+def test_consolereadwrite(client):
     cid = get_cid(client)
     conwrite = client.call(MsfRpcMethod.ConsoleWrite, [cid, "show options\n"])
     assert conwrite['wrote'] == 13
@@ -53,3 +48,6 @@ def test_moduleinfo(client):
     modinfo = client.call(MsfRpcMethod.ModuleInfo, [None, "exploit/windows/smb/ms08_067_netapi"])
     assert modinfo['name'] == "MS08-067 Microsoft Server Service Relative Path Stack Corruption"
 
+def test_pluginloaded(client):
+    plugins = client.call(MsfRpcMethod.PluginLoaded)
+    assert 'msgrpc' in plugins['plugins']
