@@ -219,7 +219,7 @@ class MsfRpcClient(object):
                 token = self.add_perm_token()
                 self.token = token
                 return True
-        except:
+        except Exception:
             raise MsfAuthError("MsfRPC: Authentication failed")
 
     def add_perm_token(self):
@@ -440,7 +440,7 @@ class LootsTable(MsfTable):
         """
         return super(LootsTable, self).records('loots', **kwargs)
 
-    def report(self, path, type, **kwargs):
+    def report(self, path, rtype, **kwargs):
         """
         Report Loot to the database
 
@@ -458,7 +458,7 @@ class LootsTable(MsfTable):
         - info : additional information about this Loot.
         - data : the data within the Loot.
         """
-        kwargs.update({'path': path, 'type': type})
+        kwargs.update({'path': path, 'type': rtype})
         self.dbreport('loot', kwargs)
 
     update = report
@@ -1830,16 +1830,16 @@ class SessionManager(MsfManager):
         """
         A list of active sessions.
         """
-        return self.rpc.call(MsfRpcMethod.SessionList)
+        return {str(k): v for k, v in self.rpc.call(MsfRpcMethod.SessionList).items()} # Convert int id to str
 
     def session(self, id):
         """
         Returns a session object for meterpreter or shell sessions.
 
         Mandatory Arguments:
-        - id : the session identifier.
+        - id : the session identifier or uuid
         """
-        s = self.list #### FIX
+        s = self.list
         if id not in s:
             for k in s:
                 if s[k]['uuid'] == id:

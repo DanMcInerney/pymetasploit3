@@ -13,23 +13,24 @@ def client():
 
 @pytest.fixture()
 def cid(client):
-    conlist = client.call(MsfRpcMethod.ConsoleList)
-    for c in conlist['consoles']:
-        return c['id']
+    c_id = client.call(MsfRpcMethod.ConsoleCreate)['id']
+    yield c_id
+    destroy = client.call(MsfRpcMethod.ConsoleDestroy, [c_id])
+    assert destroy['result'] == 'success'
 
 def test_login(client):
     assert isinstance(client, MsfRpcClient)
     tl = client.call(MsfRpcMethod.AuthTokenList)
     assert 'tokens' in tl
     assert len(tl['tokens']) > 1 # There should be temp token and UUID perm token
+    nontemp_token = False
     for x in tl['tokens']:
         if 'TEMP' in x:
             continue
-        assert 'TEMP' not in x
-
-def test_consolecreate(client):
-    condict = client.call(MsfRpcMethod.ConsoleCreate)
-    assert 'id' in condict
+        if 'TEMP' not in x:
+            nontemp_token = True
+            break
+    assert nontemp_token == True
 
 def test_consolelist(client):
     conlist = client.call(MsfRpcMethod.ConsoleList)
@@ -39,7 +40,7 @@ def test_consolelist(client):
 def test_consolereadwrite(client, cid):
     conwrite = client.call(MsfRpcMethod.ConsoleWrite, [cid, "show options\n"])
     assert conwrite['wrote'] == 13
-    time.sleep(1)
+#    time.sleep(2)
     conread = client.call(MsfRpcMethod.ConsoleRead, [cid])
     assert "Global Options" in conread['data']
 
@@ -51,6 +52,7 @@ def test_console_manager_list(client):
 
 def test_console_manager_readwrite(client, cid):
     client.consoles.console(cid).write("show options")
+#    time.sleep(2)
     out = client.consoles.console(cid).read()
     assert 'Global Options' in out['data']
 
