@@ -1839,7 +1839,7 @@ class SessionManager(MsfManager):
         Mandatory Arguments:
         - id : the session identifier.
         """
-        s = self.list
+        s = self.list #### FIX
         if id not in s:
             for k in s:
                 if s[k]['uuid'] == id:
@@ -1926,7 +1926,7 @@ class ConsoleManager(MsfManager):
         """
         A list of active consoles.
         """
-        return self.rpc.call(MsfRpcMethod.ConsoleList)
+        return self.rpc.call(MsfRpcMethod.ConsoleList)['consoles']
 
     def console(self, cid=None):
         """
@@ -1935,7 +1935,7 @@ class ConsoleManager(MsfManager):
         Optional Keyword Arguments:
         - cid : the console identifier.
         """
-        s = self.list
+        s = [i['id'] for i in self.list]
         if cid is None:
             return MsfConsole(self.rpc)
         if cid not in s:
@@ -1945,7 +1945,7 @@ class ConsoleManager(MsfManager):
 
     def destroy(self, cid):
         """
-        Destory an active console.
+        Destroy an active console.
 
         Mandatory Arguments:
         - cid : the console identifier.
