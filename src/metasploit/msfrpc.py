@@ -1334,6 +1334,14 @@ class MsfModule(object):
         return self._roptions
 
     @property
+    def missing_required(self):
+        """
+        List of missing required options
+        """
+        outstanding = list(set(self.required).difference(list(self._runopts.keys())))
+        return outstanding
+
+    @property
     def evasion(self):
         """
         Module options that are used for evasion.
@@ -1353,9 +1361,9 @@ class MsfModule(object):
         The running (currently set) options for a module. This will raise an error
         if some of the required options are missing.
         """
-        outstanding = set(self.required).difference(list(self._runopts.keys()))
-        if outstanding:
-            raise TypeError('Module missing required parameter: %s' % ', '.join(outstanding))
+        # outstanding = self.missing_required()
+        # if outstanding:
+        #     raise TypeError('Module missing required parameter: %s' % ', '.join(outstanding))
         return self._runopts
 
     def optioninfo(self, option):
@@ -1567,6 +1575,26 @@ class NopModule(MsfModule):
 
 
 class ModuleManager(MsfManager):
+
+    def execute_with_output(self, modtype, modname, **kwargs):
+        """
+        Execute a module and wait for the returned data
+
+        Mandatory Arguments:
+        - modtype : the module type (e.g. 'exploit')
+        - modname : the module name (e.g. 'exploits/windows/http/icecast_header')
+
+        Optional Keyword Arguments:
+        - **kwargs : the module's run options
+        """
+        # make sure it's not a module that requires a session (post, any others?)
+        # get a cid
+        # clear console data buffer with .read()
+        # grab the mod options
+        # craft options into a oneliner for the console
+        # use .is_busy() to wait until it's done
+        # return data buffer with .read()
+        pass
 
     def execute(self, modtype, modname, **kwargs):
         """
@@ -1918,6 +1946,16 @@ class MsfConsole(object):
         """
         self.rpc.call(MsfRpcMethod.ConsoleDestroy, [self.cid])
 
+    def is_busy(self):
+        """
+        Checks if the console is busy. We can't use .read() because that clears the data buffer.
+        We must do this by using .list instead.
+        """
+        cons = self.rpc.call(MsfRpcMethod.ConsoleList)['consoles']
+        for c in cons:
+            if c['id'] == self.cid:
+                return c['busy']
+
 
 class ConsoleManager(MsfManager):
 
@@ -1951,3 +1989,4 @@ class ConsoleManager(MsfManager):
         - cid : the console identifier.
         """
         self.rpc.call(MsfRpcMethod.ConsoleDestroy, [cid])
+
