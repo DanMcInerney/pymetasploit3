@@ -10,9 +10,9 @@ def read(fname):
 
 setup(
     name='pymetasploit',
-    author='Nadeem Douba',
-    version='1.1',
-    author_email='ndouba@gmail.com',
+    author='Dan McInerney',
+    version='3.0',
+    author_email='danhmcinerney@gmail.com',
     description='A full-fledged msfrpc library for Metasploit framework.',
     license='GPL',
     packages=find_packages('src'),
@@ -22,9 +22,10 @@ setup(
         'src/pymsfrpc.py'
     ],
     install_requires=[
-        'msgpack-python>=0.1.12'
+        'msgpack'
+        'requests'
     ],
-    url='https://github.com/allfro/pymetasploit',
-    download_url='https://github.com/allfro/pymetasploit/zipball/master',
+    url='https://github.com/DanMcInerney/pymetasploit3',
+    download_url='https://github.com/DanMcInerney/pymetasploit3/zipball/master',
     long_description=read('README')
 )
