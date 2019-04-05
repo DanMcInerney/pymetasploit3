@@ -53,3 +53,10 @@ def test_console_manager_readwrite(client, cid):
 
 def test_console_is_busy(client, cid):
     assert client.consoles.console(cid).is_busy() == False
+
+def test_console_execute_with_cmd(client, cid):
+    x = client.modules.use('exploit', 'unix/ftp/vsftpd_234_backdoor')
+    x['RHOSTS'] = '127.0.0.1'
+    out = client.consoles.console(cid).execute_module_with_output(x, payload='cmd/unix/interact')
+    assert type(out) == str
+    assert '[*] Exploit completed, but no session was created.'.lower() in out.lower()

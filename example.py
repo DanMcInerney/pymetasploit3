@@ -93,5 +93,41 @@ exploit.runoptions
 #      'TCP::max_send_size': 0,
 #      'TCP::send_delay': 0}
 
+# Get the CVE/OSVDB/BID of an exploit
+exploit.references
+# >>> [['CVE', '2013-4011'],
+#      ['OSVDB', '95420'],
+#  	   ['BID', '61287'],
+#      ['URL', 'http://www-01.ibm.com/support/docview.wss?uid=isg1IV43827'],
+#      ['URL', 'http://www-01.ibm.com/support/docview.wss?uid=isg1IV43756']]
 
+# Get an option's info
+exploit.optioninfo('RHOSTS')
+# >>> {'type': 'addressrange',
+#      'required': True,
+#      'advanced': False,
+#      'evasion': False,
+#      'desc': 'The target address range or CIDR identifier'}
+
+# Get targets
+exploit.targets
+# >>> {0: 'Automatic'}
+
+# Set the target
+exploit.target = 0
+
+# Get target-compatible payloads
+exploit.targetpayloads()
+# >>> ['cmd/unix/interact']
+
+# Execute the module
+# If 'job_id' is None, the module failed to execute
+exploit.execute(payload='cmd/unix/interact')
+# >>> {'job_id': 1, 'uuid': 'hb2f0yei'}
+
+# Execute the module and return the output
+cid = client.consoles.console().cid
+client.consoles.console(cid).execute_module_with_output(exploit, payload='cmd/unix/interact')
+# >>> '... [-] 127.0.0.1:21 - Exploit failed [unreachable]: Rex::ConnectionRefused
+# 	   The connection was refused by the remote host (127.0.0.1:21).\n[*] Exploit completed, but no session was created.\n'
 

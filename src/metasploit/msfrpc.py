@@ -4,6 +4,7 @@ from numbers import Number
 from src.metasploit.utils import *
 import requests
 import uuid
+import time
 from IPython import embed
 
 __all__ = [
@@ -1576,26 +1577,6 @@ class NopModule(MsfModule):
 
 class ModuleManager(MsfManager):
 
-    def execute_with_output(self, modtype, modname, **kwargs):
-        """
-        Execute a module and wait for the returned data
-
-        Mandatory Arguments:
-        - modtype : the module type (e.g. 'exploit')
-        - modname : the module name (e.g. 'exploits/windows/http/icecast_header')
-
-        Optional Keyword Arguments:
-        - **kwargs : the module's run options
-        """
-        # make sure it's not a module that requires a session (post, any others?)
-        # get a cid
-        # clear console data buffer with .read()
-        # grab the mod options
-        # craft options into a oneliner for the console
-        # use .is_busy() to wait until it's done
-        # return data buffer with .read()
-        pass
-
     def execute(self, modtype, modname, **kwargs):
         """
         Execute the module.
@@ -1956,6 +1937,31 @@ class MsfConsole(object):
             if c['id'] == self.cid:
                 return c['busy']
 
+    def execute_module_with_output(self, mod, payload=None):
+        """
+        Execute a module and wait for the returned data
+
+        Mandatory Arguments:
+        - cid : the console identifier.
+        - mod : the ModuleManager object
+        """
+        options_str = 'use {}/{}\n'.format(mod.moduletype, mod.modulename)
+        if self.rpc.consoles.console(self.cid).is_busy():
+            raise ValueError('Console %s is busy' % self.cid)
+        self.rpc.consoles.console(self.cid).read() # clear data buffer
+        opts = mod.runoptions
+        for k in opts.keys():
+            options_str += 'set {} {}\n'.format(k, opts[k])
+        if mod.moduletype == 'exploit':
+            if payload:
+                options_str += 'set payload {}\n'.format(payload)
+        options_str += 'run\n'
+        wrote = self.rpc.consoles.console(self.cid).write(options_str)
+        time.sleep(2)
+        while self.rpc.consoles.console(self.cid).is_busy():
+            time.sleep(1)
+        return self.rpc.consoles.console(self.cid).read()['data']
+
 
 class ConsoleManager(MsfManager):
 
@@ -1989,4 +1995,5 @@ class ConsoleManager(MsfManager):
         - cid : the console identifier.
         """
         self.rpc.call(MsfRpcMethod.ConsoleDestroy, [cid])
+
 
