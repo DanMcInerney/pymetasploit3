@@ -19,6 +19,8 @@ def cid(client):
     destroy = client.call(MsfRpcMethod.ConsoleDestroy, [c_id])
     assert destroy['result'] == 'success'
 
+def test_jobs(client):
+    assert type(client.jobs.list) == dict
 
 def test_login(client):
     assert isinstance(client, MsfRpcClient)
