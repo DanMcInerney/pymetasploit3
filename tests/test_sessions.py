@@ -26,5 +26,7 @@ def test_sessions_module_list(client, sid):
 def test_sessions_read(client, sid):
     assert type(client.sessions.session(sid).read()) == str
 
+def test_sessions_runsingle(client, sid):
+    assert type(client.sessions.session(sid).runsingle('')) == str
 
 
