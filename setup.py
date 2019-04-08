@@ -16,13 +16,12 @@ setup(
     description='A full-fledged msfrpc library for Metasploit framework.',
     license='GPL',
     packages=find_packages('src'),
-    package_dir={'': 'src'},
     scripts=[
         'src/pymsfconsole.py',
         'src/pymsfrpc.py'
     ],
     install_requires=[
-        'msgpack'
+        'msgpack',
         'requests'
     ],
     url='https://github.com/DanMcInerney/pymetasploit3',
