@@ -5,7 +5,8 @@ from src.metasploit.utils import *
 import requests
 import uuid
 import time
-from IPython import embed
+import requests.packages.urllib3
+requests.packages.urllib3.disable_warnings()
 
 __all__ = [
     'MsfRpcError',
@@ -185,7 +186,7 @@ class MsfRpcClient(object):
         self.uri = kwargs.get('uri', '/api/')
         self.port = kwargs.get('port', 55552)
         self.host = kwargs.get('server', '127.0.0.1')
-        self.ssl = kwargs.get('ssl', False)
+        self.ssl = kwargs.get('ssl', True)
         self.token = kwargs.get('token')
         self.headers = {"Content-type": "binary/message-pack"}
         self.login(kwargs.get('username', 'msf'), password)
@@ -206,7 +207,7 @@ class MsfRpcClient(object):
         opts.insert(0, method)
         payload = encode(opts)
 
-        r = requests.post(url, data=payload, headers=self.headers)
+        r = requests.post(url, data=payload, headers=self.headers, verify=False)
 
         opts[:] = []  # Clear opts list
 
