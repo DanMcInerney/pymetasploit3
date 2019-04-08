@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import pytest
+import time
 from src.metasploit.msfrpc import *
 
 
@@ -29,4 +30,12 @@ def test_sessions_read(client, sid):
 def test_sessions_runsingle(client, sid):
     assert type(client.sessions.session(sid).runsingle('')) == str
 
+def test_sessions_readwrite(client, sid):
+    s = client.sessions.session(sid)
+    s.write('help')
+    out = ''
+    while len(out) == 0:
+        time.sleep(3)
+        out = s.read()
+    assert '\nCore Commands\n=============\n\n' in out
 

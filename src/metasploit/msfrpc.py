@@ -1757,6 +1757,8 @@ class MeterpreterSession(MsfSession):
         Mandatory Arguments:
         - data : arbitrary data or commands
         """
+        if not data.endswith("\n"):
+            data = data + "\n"
         self.rpc.call(MsfRpcMethod.SessionMeterpreterWrite, [self.sid, data])
 
     def runsingle(self, data):
@@ -1778,6 +1780,13 @@ class MeterpreterSession(MsfSession):
         """
         self.rpc.call(MsfRpcMethod.SessionMeterpreterScript, [self.sid, path])
         return self.read()
+
+    @property
+    def info(self):
+        """
+        Get the session's data dictionary
+        """
+        return self.__dict__[self.sid]
 
     @property
     def sep(self):
@@ -1823,6 +1832,8 @@ class ShellSession(MsfSession):
         Mandatory Arguments:
         - data : arbitrary data or commands
         """
+        if not data.endswith("\n"):
+            data = data + "\n"
         self.rpc.call(MsfRpcMethod.SessionShellWrite, [self.sid, data])
 
     def upgrade(self, lhost, lport):
@@ -1898,7 +1909,7 @@ class MsfConsole(object):
         Write data to the console.
         """
         if not command.endswith('\n'):
-            command += '\n'
+            command + '\n'
         self.rpc.call(MsfRpcMethod.ConsoleWrite, [self.cid, command])
 
     def sessionkill(self):
