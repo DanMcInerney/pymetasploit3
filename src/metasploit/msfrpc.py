@@ -1846,8 +1846,8 @@ class MeterpreterSession(MsfSession):
                 return out
             counter += 1
 
-        raise MsfError(f"Command <{cmd}> timed out in <{timeout}s> on session <{self.sid}> "
-                       f"without finding the end_strs <{end_strs}> in the output")
+        raise MsfError(f"Command <{repr(cmd)[1:-1]}> timed out in <{timeout}s> on session <{self.sid}> "
+                       f"without finding any termination strings within <{end_strs}> in the output: <{out}>")
 
 class ShellSession(MsfSession):
 
@@ -1875,6 +1875,38 @@ class ShellSession(MsfSession):
         self.rpc.call(MsfRpcMethod.SessionShellUpgrade, [self.sid, lhost, lport])
         return self.read()
 
+    def run_with_output(self, cmd, end_strs, timeout=301):
+        """
+        Run a command and wait for the output.
+
+        Mandatory Arguments:
+        - data : command to run in the session.
+        - end_strs : a list of strings which signify you've gathered all the command's output, e.g., ['finished', 'done']
+
+        Optional Arguments:
+        - timeout : number of seconds to wait if end_strs aren't found. 300s is default MSF comm timeout.
+        """
+        self.__dict__['busy'] = True
+        out = self.write(cmd)
+        out += self.gather_output(cmd, out, end_strs, timeout)
+        self.__dict__['busy'] = False
+        return out
+
+    def gather_output(self, cmd, out, end_strs, timeout):
+        """
+        Wait for session command to get all output.
+        """
+        counter = 0
+        while counter < timeout + 1:
+            time.sleep(1)
+            out += self.read()
+            if any(end_str in out for end_str in end_strs):
+                return out
+            counter += 1
+
+        raise MsfError(f"Command <{repr(cmd)[1:-1]}> timed out in <{timeout}s> on session <{self.sid}> "
+                       f"without finding any termination strings within <{end_strs}> in the output: <{out}>")
+
 
 class SessionManager(MsfManager):
 
@@ -1885,27 +1917,27 @@ class SessionManager(MsfManager):
         """
         return {str(k): v for k, v in self.rpc.call(MsfRpcMethod.SessionList).items()} # Convert int id to str
 
-    def session(self, id):
+    def session(self, sid):
         """
         Returns a session object for meterpreter or shell sessions.
 
         Mandatory Arguments:
-        - id : the session identifier or uuid
+        - sid : the session identifier or uuid
         """
         s = self.list
-        if id not in s:
+        if sid not in s:
             for k in s:
-                if s[k]['uuid'] == id:
-                    if s[id]['type'] == 'meterpreter':
-                        return MeterpreterSession(id, self.rpc, s)
-                    elif s[id]['type'] == 'shell':
-                        return ShellSession(id, self.rpc, s)
-            raise KeyError('Session ID (%s) does not exist' % id)
-        if s[id]['type'] == 'meterpreter':
-            return MeterpreterSession(id, self.rpc, s)
-        elif s[id]['type'] == 'shell':
-            return ShellSession(id, self.rpc, s)
-        raise NotImplementedError('Could not determine session type: %s' % s[id]['type'])
+                if s[k]['uuid'] == sid:
+                    if s[sid]['type'] == 'meterpreter':
+                        return MeterpreterSession(sid, self.rpc, s)
+                    elif s[sid]['type'] == 'shell':
+                        return ShellSession(sid, self.rpc, s)
+            raise KeyError('Session ID (%s) does not exist' % sid)
+        if s[sid]['type'] == 'meterpreter':
+            return MeterpreterSession(sid, self.rpc, s)
+        elif s[sid]['type'] == 'shell':
+            return ShellSession(sid, self.rpc, s)
+        raise NotImplementedError('Could not determine session type: %s' % s[sid]['type'])
 
 
 class MsfConsole(object):

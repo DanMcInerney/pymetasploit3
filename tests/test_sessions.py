@@ -12,26 +12,36 @@ def client():
     client.call(MsfRpcMethod.AuthLogout)
 
 @pytest.fixture()
-def sid(client):
-    sid = [id for id in client.sessions.list.keys()][0]
-    assert int(sid)
-    yield sid
+def meterpreter_sid(client):
+    s = client.sessions.list
+    for sid in s:
+        if s[sid]['type'] == 'meterpreter':
+            assert int(sid)
+            yield sid
+
+@pytest.fixture()
+def shell_sid(client):
+    s = client.sessions.list
+    for sid in s:
+        if s[sid]['type'] == 'shell':
+            assert int(sid)
+            yield sid
 
 def test_sessions_list(client):
     sess_list = client.sessions.list
     assert type(sess_list) == dict
 
-def test_sessions_module_list(client, sid):
-    assert 'post/' in client.sessions.session(sid).modules[0]
+def test_met_module_list(client, meterpreter_sid):
+    assert 'post/' in client.sessions.session(meterpreter_sid).modules[0]
 
-def test_sessions_read(client, sid):
-    assert type(client.sessions.session(sid).read()) == str
+def test_sessions_read(client, meterpreter_sid):
+    assert type(client.sessions.session(meterpreter_sid).read()) == str
 
-def test_sessions_runsingle(client, sid):
-    assert type(client.sessions.session(sid).runsingle('')) == str
+def test_sessions_runsingle(client, meterpreter_sid):
+    assert type(client.sessions.session(meterpreter_sid).runsingle('')) == str
 
-def test_sessions_readwrite(client, sid):
-    s = client.sessions.session(sid)
+def test_met_readwrite(client, meterpreter_sid):
+    s = client.sessions.session(meterpreter_sid)
     s.write('help')
     out = ''
     while len(out) == 0:
@@ -39,11 +49,16 @@ def test_sessions_readwrite(client, sid):
         out = s.read()
     assert '\nCore Commands\n=============\n\n' in out
 
-def test_sessions_run_with_output(client, sid):
-    s = client.sessions.session(sid)
+def test_met_run_with_output(client, meterpreter_sid):
+    s = client.sessions.session(meterpreter_sid)
     cmd = 'arp'
     end_strs = ['----']
     out = s.run_with_output(cmd, end_strs)
     assert 'ARP cache' in out
 
-
+def test_shell_run_with_output(client, shell_sid):
+    s = client.sessions.session(shell_sid)
+    cmd = 'whoami'
+    end_strs = ['\\']
+    out = s.run_with_output(cmd, end_strs)
+    assert '\\' in out
