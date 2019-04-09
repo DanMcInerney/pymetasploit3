@@ -35,7 +35,15 @@ def test_sessions_readwrite(client, sid):
     s.write('help')
     out = ''
     while len(out) == 0:
-        time.sleep(3)
+        time.sleep(1)
         out = s.read()
     assert '\nCore Commands\n=============\n\n' in out
+
+def test_sessions_run_with_output(client, sid):
+    s = client.sessions.session(sid)
+    cmd = 'arp'
+    end_strs = ['----']
+    out = s.run_with_output(cmd, end_strs)
+    assert 'ARP cache' in out
+
 
