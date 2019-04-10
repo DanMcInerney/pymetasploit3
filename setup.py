@@ -16,7 +16,6 @@ setup(
     description='A full-fledged msfrpc library for Metasploit framework.',
     license='GPL',
     packages=find_packages('pymetasploit3'),
-#    package_dir={ '' : 'pymetasploit3' },
     scripts=[
         'pymetasploit3/scripts/pymsfconsole.py',
         'pymetasploit3/scripts/pymsfrpc.py'

