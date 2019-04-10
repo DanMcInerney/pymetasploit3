@@ -158,7 +158,7 @@ Create a shell object out of the session number we found above and write to it:
 ```python
 >>> shell = client.sessions.session('1')
 >>> shell.write('whoami')
->>> print shell.read()
+>>> print(shell.read())
 root
 >>>
 ```
@@ -204,6 +204,10 @@ Metasploit's comm timeout of 300s and will throw an exception if the command tim
 # 10s pass
 '\nARP Table\n                  ---------------\n  ...`
 ```
+
+### More examples
+
+Many other usage examples can be found in the `example_usage.py` file.
 
 # Contributions
 
