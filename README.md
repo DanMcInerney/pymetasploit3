@@ -1,58 +1,27 @@
-PyMetasploit for Python 3
+Pymetasploit33
 =======
 
-PyMetasploit is a full-fledged `msfrpc` library for Python. It is meant to interact with the msfrpcd daemon that comes
-with the latest versions of Metasploit. It does NOT interact with the console-based scripts that Metasploit provides
-such as msfconsole, msfvenom, etc. Therefore, before you can begin to use this library, you'll need to initialize
-`msfrpcd` and optionally (highly recommended) PostgreSQL.
+Pymetasploit3 is a full-fledged Python3 Metasploit automation library. It can interact with Metasploit either through msfrpcd or the msgrpc plugin in msfconsole.
 
-# Update for Python 3
+# Original library: pymetasploit
 
-This is a forked and updated version of PyMetasploit for Python 3.
-See `example.py` and the tutorial below for more information.
+This is an updated and improved version of the Python2 pymetasploit library by allfro.
 
 Original project  : https://github.com/allfro/pymetasploit
 
-# Requirements
+# Installation (untested)
 
-Before we begin, you'll need to install the following components:
+    git clone https://github.com/DanMcInerney/pymetasploit3
+    cd [Download path]/pymetasploit3
+    cd 
+    pipenv install --three
+    pipenv shell
+    python3
 
-* **Metasploit:** https://github.com/rapid7/metasploit-framework
-* **PostgreSQL (Optional):** http://www.postgresql.org
-
-Installing PostgreSQL is highly recommended as it will improve response times when querying `msfrpcd` (Metasploit RPC
-daemon) for module information.
-
-# Tutorial
+# Basic Usage
 
 ## Starting `msfrpcd`
 
-`msfrpcd` accepts the following arguments:
-
-```bash
-$ ./msfrpcd -h
-
-   Usage: msfrpcd <options>
-
-   OPTIONS:
-
-       -P <opt>  Specify the password to access msfrpcd
-       -S        Disable SSL on the RPC socket
-       -U <opt>  Specify the username to access msfrpcd
-       -a <opt>  Bind to this IP address
-       -f        Run the daemon in the foreground
-       -h        Help banner
-       -n        Disable database
-       -p <opt>  Bind to this port instead of 55553
-       -u <opt>  URI for Web server
-```
-
-The only parameter that is required to launch `msfrpcd` is the `-P` (password) parameter. This specifies the password
-that will be used to authenticate users to the daemon. As of this writing, `msfrpcd` only supports one username/password
-combination. However, the same user can log into the daemon multiple times. Unless specified otherwise, the `msfrpcd`
-daemon listens on port 55553 on all interfaces (`0.0.0.0:55553`).
-
-For the purposes of this tutorial let's start the `msfrpcd` daemon with a minimal configuration:
 
 ```bash
 $ ./msfrpcd -P mypassword -n -f -a 127.0.0.1
