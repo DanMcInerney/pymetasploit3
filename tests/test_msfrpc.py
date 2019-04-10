@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 import pytest
-
-from src.metasploit.msfrpc import *
+from metasploit.msfrpc import *
 
 
 @pytest.fixture()
@@ -14,9 +13,9 @@ def client():
 
 @pytest.fixture()
 def cid(client):
-    c_id = client.call(MsfRpcMethod.ConsoleCreate)['id']
+    c_id = client.consoles.console().cid
     yield c_id
-    destroy = client.call(MsfRpcMethod.ConsoleDestroy, [c_id])
+    destroy = client.consoles.console(cid).destroy
     assert destroy['result'] == 'success'
 
 def test_jobs(client):

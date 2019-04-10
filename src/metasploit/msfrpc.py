@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from numbers import Number
-from src.metasploit.utils import *
+from metasploit.utils import *
 import requests
 import uuid
 import time
@@ -1816,7 +1816,7 @@ class MeterpreterSession(MsfSession):
         """
         return self.rpc.call(MsfRpcMethod.SessionMeterpreterTabs, [self.sid, line])['tabs']
 
-    def run_with_output(self, cmd, end_strs, timeout=301):
+    def run_with_output(self, cmd, end_strs, timeout=301, timeout_exception=True):
         """
         Run a command and wait for the output.
 
@@ -1826,12 +1826,14 @@ class MeterpreterSession(MsfSession):
 
         Optional Arguments:
         - timeout : number of seconds to wait if end_strs aren't found. 300s is default MSF comm timeout.
+        - timeout_exception : If True, library will throw an error when it hits the timeout.
+                              If False, library will simply return whatever output it got within the timeout limit.
         """
         out = self.runsingle(cmd)
-        out += self.gather_output(cmd, out, end_strs, timeout)
+        out += self.gather_output(cmd, out, end_strs, timeout, timeout_exception)
         return out
 
-    def gather_output(self, cmd, out, end_strs, timeout):
+    def gather_output(self, cmd, out, end_strs, timeout, timeout_exception):
         """
         Wait for session command to get all output.
         """
@@ -1843,8 +1845,11 @@ class MeterpreterSession(MsfSession):
                 return out
             counter += 1
 
-        raise MsfError(f"Command <{repr(cmd)[1:-1]}> timed out in <{timeout}s> on session <{self.sid}> "
-                       f"without finding any termination strings within <{end_strs}> in the output: <{out}>")
+        if timeout_exception:
+            raise MsfError(f"Command <{repr(cmd)[1:-1]}> timed out in <{timeout}s> on session <{self.sid}> "
+                           f"without finding any termination strings within <{end_strs}> in the output: <{out}>")
+        else:
+            return out
 
     def run_shell_cmd_with_output(self, cmd, end_strs, exit_shell=True):
         """
@@ -1868,7 +1873,7 @@ class MeterpreterSession(MsfSession):
         """
         cmd = 'shell'
         end_strs = ['>']
-        out = self.run_with_output(cmd, end_strs)
+        self.run_with_output(cmd, end_strs)
         return True
 
 

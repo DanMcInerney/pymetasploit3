@@ -2,7 +2,7 @@
 
 import pytest
 import time
-from src.metasploit.msfrpc import *
+from metasploit.msfrpc import *
 
 
 @pytest.fixture()
