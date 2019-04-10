@@ -176,18 +176,19 @@ Run the same `exploit` object as before but wait until it completes and gather i
 
 ```
 
-Running session commands isn't as simple as console commands. The Metasploit RPC server will return a `busy` value that 
-is `True` or `False` with `client.console.consoles('1').is_busy()` but determining if a `client.sessions.session()`  is 
-done running a command requires us to do it by hand. For this purpose we will use a list of strings that, when any one 
-is found in the session's output, will tell us that the session is done running its command. Below we are running the 
-`arp` command within the session. We know this command will return one large blob of text that will contain the 
-characters `----` if it's successfully run so we put that into a list object. 
+`client.sessions.session()` has the same `.write('some string')` and `.read()` methods, but running session commands and
+ waiting until they're done returning output isn't as simple as console commands. The Metasploit RPC server will return 
+ a `busy` value that is `True` or `False` with `client.console.consoles('1').is_busy()` but determining if a 
+ `client.sessions.session()`  is done running a command requires us to do it by hand. For this purpose we will use a 
+ list of strings that, when any one is found in the session's output, will tell us that the session is done running 
+ its command. Below we are running the `arp` command within a meterpreter session. We know this command will return one 
+ large blob of text that will contain the characters `----` if it's successfully run so we put that into a list object. 
  
  ```python
 >>> session_id = '1'
 >>> session_command = 'arp'
 >>> terminating_strs = ['----']
->>> client.session.sessions(session_id).run_with_output(session_command, terminating_strs)
+>>> client.sessions.session(session_id).run_with_output(session_command, terminating_strs)
 # Some time passes
 '\nARP Table\n                  ---------------\n  ...`
 ```
@@ -200,7 +201,7 @@ Metasploit's comm timeout of 300s and will throw an exception if the command tim
 >>> session_id = '1'
 >>> session_command = 'arp'
 >>> terminating_strs = ['----']
->>> client.session.sessions(session_id).run_with_output(session_command, terminating_strs, timeout=10, timeout_exception=False))
+>>> client.sessions.session(session_id).run_with_output(session_command, terminating_strs, timeout=10, timeout_exception=False))
 # 10s pass
 '\nARP Table\n                  ---------------\n  ...`
 ```
