@@ -20,13 +20,13 @@ Original project  : https://github.com/allfro/pymetasploit
 ## Starting Metasploit RPC server
 
 ### Msfconsole
-This will start the RPC server on port 55553 as well as the Metasploit console UI
+This will start the RPC server on port 55552 as well as the Metasploit console UI
 ```bash
 $ msfconsole
-msf> load msgrpc [-P yourpassword]
+msf> load msgrpc [Pass=yourpassword] 
 ```
 ### msfrpcd
-This will start the RPC server on port 55552 and will just start the RPC server in the background
+This will start the RPC server on port 55553 and will just start the RPC server in the background
 ```bash
 $ msfrpcd -P yourpassword
 ```
