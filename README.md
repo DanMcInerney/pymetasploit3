@@ -141,7 +141,7 @@ description, required run-time options, etc. Let's take a look:
           available. This backdoor was removed on July 3rd 2011.
 
 >>> exploit.authors
-['hdm <hdm@metasploit.com>', 'MC <mc@metasploit.com>']
+[pymetasploit3, pymetasploit3]
 >>> exploit.options
 ['TCP::send_delay', 'ConnectTimeout', 'SSLVersion', 'VERBOSE', 'SSLCipher', 'CPORT', 'SSLVerifyMode', 'SSL', 'WfsDelay',
 'CHOST', 'ContextInformationFile', 'WORKSPACE', 'EnableContextEncoding', 'TCP::max_send_size', 'Proxies',

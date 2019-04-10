@@ -1,4 +1,4 @@
-from metasploit.msfrpc import *
+from pymetasploit3.msfrpc import *
 
 ## Usage example
 

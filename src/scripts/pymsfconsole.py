@@ -6,9 +6,9 @@ from sys import stdout
 from os import path
 import readline
 
-from metasploit.msfrpc import MsfRpcClient, MsfRpcError
-from metasploit.msfconsole import MsfRpcConsole
-from metasploit.utils import parseargs
+from pymetasploit3.msfrpc import MsfRpcClient, MsfRpcError
+from pymetasploit3.msfconsole import MsfRpcConsole
+from pymetasploit3.utils import parseargs
 
 
 class MsfConsole(InteractiveConsole):

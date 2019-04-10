@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from threading import Timer, Lock
-from src.metasploit.msfrpc import ShellSession
+from src.pymetasploit3.msfrpc import ShellSession
 
 
 class MsfRpcConsoleType:
