@@ -11,15 +11,15 @@ def read(fname):
 setup(
     name='pymetasploit3',
     author='Dan McInerney',
-    version='3.0',
+    version='1.0',
     author_email='danhmcinerney@gmail.com',
     description='A full-fledged msfrpc library for Metasploit framework.',
     license='GPL',
     packages=find_packages('pymetasploit3'),
-    package_dir={ '' : 'pymetasploit3' },
+#    package_dir={ '' : 'pymetasploit3' },
     scripts=[
-        'pymetasploit3/scripts/pymsfconsole',
-        'pymetasploit3/scripts/pymsfrpc'
+        'pymetasploit3/scripts/pymsfconsole.py',
+        'pymetasploit3/scripts/pymsfrpc.py'
     ],
     install_requires=[
         'msgpack',
@@ -27,5 +27,5 @@ setup(
     ],
     url='https://github.com/DanMcInerney/pymetasploit3',
     download_url='https://github.com/DanMcInerney/pymetasploit3/zipball/master',
-    long_description=read('README')
+    long_description=read('README.md')
 )
