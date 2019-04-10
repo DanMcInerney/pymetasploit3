@@ -1676,13 +1676,12 @@ class MsfSession(object):
         Initialize a meterpreter or shell session.
 
         Mandatory Arguments:
-        - id : the session identifier.
+        - sid : the session identifier.
         - rpc : the msfrpc client object.
         - sd : the session description
         """
         self.sid = sid
         self.rpc = rpc
-        sd.update({'busy':False, 'in_os_shell':False})
         self.__dict__.update(sd)
 
     def stop(self):
@@ -1758,8 +1757,8 @@ class MeterpreterSession(MsfSession):
         Mandatory Arguments:
         - data : arbitrary data or commands
         """
-        if not data.endswith("\n"):
-            data = data + "\n"
+        if not data.endswith('\n'):
+            data += '\n'
         self.rpc.call(MsfRpcMethod.SessionMeterpreterWrite, [self.sid, data])
 
     def runsingle(self, data):
@@ -1828,10 +1827,8 @@ class MeterpreterSession(MsfSession):
         Optional Arguments:
         - timeout : number of seconds to wait if end_strs aren't found. 300s is default MSF comm timeout.
         """
-        self.__dict__['busy'] = True
         out = self.runsingle(cmd)
         out += self.gather_output(cmd, out, end_strs, timeout)
-        self.__dict__['busy'] = False
         return out
 
     def gather_output(self, cmd, out, end_strs, timeout):
@@ -1849,6 +1846,32 @@ class MeterpreterSession(MsfSession):
         raise MsfError(f"Command <{repr(cmd)[1:-1]}> timed out in <{timeout}s> on session <{self.sid}> "
                        f"without finding any termination strings within <{end_strs}> in the output: <{out}>")
 
+    def run_shell_cmd_with_output(self, cmd, end_strs, exit_shell=True):
+        """
+        Runs a Windows command from a meterpreter shell
+
+        Optional Arguments:
+        exit_shell : Exit the shell inside meterpreter once command is done.
+        """
+        self.start_shell()
+        out = self.run_with_output(cmd, end_strs)
+        if exit_shell == True:
+            res = self.detach()
+            if 'result' in res:
+                if res['result'] != 'success':
+                    raise MsfError('Shell failed to exit on meterpreter session ' + self.sid)
+        return out
+
+    def start_shell(self):
+        """
+        Drops meterpreter session into shell
+        """
+        cmd = 'shell'
+        end_strs = ['>']
+        out = self.run_with_output(cmd, end_strs)
+        return True
+
+
 class ShellSession(MsfSession):
 
     def read(self):
@@ -1864,8 +1887,8 @@ class ShellSession(MsfSession):
         Mandatory Arguments:
         - data : arbitrary data or commands
         """
-        if not data.endswith("\n"):
-            data = data + "\n"
+        if not data.endswith('\n'):
+            data += '\n'
         self.rpc.call(MsfRpcMethod.SessionShellWrite, [self.sid, data])
 
     def upgrade(self, lhost, lport):
@@ -1886,16 +1909,15 @@ class ShellSession(MsfSession):
         Optional Arguments:
         - timeout : number of seconds to wait if end_strs aren't found. 300s is default MSF comm timeout.
         """
-        self.__dict__['busy'] = True
-        out = self.write(cmd)
-        out += self.gather_output(cmd, out, end_strs, timeout)
-        self.__dict__['busy'] = False
+        self.write(cmd)
+        out = self.gather_output(cmd, end_strs, timeout)
         return out
 
-    def gather_output(self, cmd, out, end_strs, timeout):
+    def gather_output(self, cmd, end_strs, timeout):
         """
         Wait for session command to get all output.
         """
+        out = ''
         counter = 0
         while counter < timeout + 1:
             time.sleep(1)
@@ -1973,7 +1995,7 @@ class MsfConsole(object):
         Write data to the console.
         """
         if not command.endswith('\n'):
-            command + '\n'
+            command += '\n'
         self.rpc.call(MsfRpcMethod.ConsoleWrite, [self.cid, command])
 
     def sessionkill(self):
@@ -2013,7 +2035,7 @@ class MsfConsole(object):
             if c['id'] == self.cid:
                 return c['busy']
 
-    def execute_module_with_output(self, mod, payload=None):
+    def run_module_with_output(self, mod, payload=None):
         """
         Execute a module and wait for the returned data
 
@@ -2031,9 +2053,13 @@ class MsfConsole(object):
         if mod.moduletype == 'exploit':
             if payload:
                 options_str += 'set payload {}\n'.format(payload)
-        options_str += 'run\n'
-        wrote = self.rpc.consoles.console(self.cid).write(options_str)
-        time.sleep(2)
+        options_str += 'run'
+        self.rpc.consoles.console(self.cid).write(options_str)
+        # Sometimes it takes a while for the console to write all the options
+        # While it's writing the options the console will not be busy
+        while not self.rpc.consoles.console(self.cid).is_busy():
+            time.sleep(.5)
+        # After it's done writing all the options then the console will turn busy as the module runs
         while self.rpc.consoles.console(self.cid).is_busy():
             time.sleep(1)
         return self.rpc.consoles.console(self.cid).read()['data']
