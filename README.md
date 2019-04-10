@@ -152,7 +152,8 @@ We know the job ran successfully because `job_id` is `1`. If the module failed t
 >>>
 ```
 
-Interact with the shell:
+### Interacting with the shell
+Create a shell object out of the session number we found above and write to it:
 
 ```python
 >>> shell = client.sessions.session('1')
@@ -176,11 +177,11 @@ Run the same `exploit` object as before but wait until it completes and gather i
 ```
 
 Running session commands isn't as simple as console commands. The Metasploit RPC server will return a `busy` value that 
-is True or False but determining if a session is done running a command and returning its output requires us to do it by
- hand. For this purpose we will use a list of strings that, when found in the session's output, will tell us that the
- session is done running its command. Below we are running the `arp` command within the session. We know this command 
- will return one large blob of text that will contain the characters `----` if it's successfully run so we put that into 
- a list object. 
+is `True` or `False` with `client.console.consoles('1').is_busy()` but determining if a `client.sessions.session()`  is 
+done running a command requires us to do it by hand. For this purpose we will use a list of strings that, when any one 
+is found in the session's output, will tell us that the session is done running its command. Below we are running the 
+`arp` command within the session. We know this command will return one large blob of text that will contain the 
+characters `----` if it's successfully run so we put that into a list object. 
  
  ```python
 >>> session_id = '1'
@@ -206,4 +207,5 @@ Metasploit's comm timeout of 300s and will throw an exception if the command tim
 
 # Contributions
 
-I highly encourage contributors to send in any and all pull requests and issues.
+I highly encourage contributors to send in any and all pull requests or issues. And thank you to allfro for writing
+the original pymetasploit library.
