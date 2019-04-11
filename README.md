@@ -1,4 +1,4 @@
-Pymetasploit33
+Pymetasploit3
 =======
 
 Pymetasploit3 is a full-fledged Python3 Metasploit automation library. It can interact with Metasploit either through msfrpcd or the msgrpc plugin in msfconsole.
@@ -176,7 +176,7 @@ Run the same `exploit` object as before but wait until it completes and gather i
 
 ```
 
-`client.sessions.session()` has the same `.write('some string')` and `.read()` methods, but running session commands and
+`client.sessions.session('1')` has the same `.write('some string')` and `.read()` methods, but running session commands and
  waiting until they're done returning output isn't as simple as console commands. The Metasploit RPC server will return 
  a `busy` value that is `True` or `False` with `client.consoles.console('1').is_busy()` but determining if a 
  `client.sessions.session()`  is done running a command requires us to do it by hand. For this purpose we will use a 
