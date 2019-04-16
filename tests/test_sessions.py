@@ -2,6 +2,7 @@
 
 import pytest
 import time
+import os
 from pymetasploit3.msfrpc import *
 
 
@@ -68,3 +69,13 @@ def test_shell_run_with_output(client, shell_sid):
     end_strs = ['>']
     out = s.run_with_output(cmd, end_strs)
     assert '\\' in out
+
+
+def test_psh_script(client, meterpreter_sid):
+    s = client.sessions.session(meterpreter_sid)
+    path = os.getcwd()
+    path += '/Invoke-Mimikatz.ps1'
+    out = s.import_psh(path)
+    assert 'success' in out
+    out = s.run_psh_cmd('Invoke-Mimikatz')
+    assert 'mimikatz' in out

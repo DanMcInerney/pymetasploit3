@@ -1686,7 +1686,7 @@ class MsfSession(object):
         self.rpc = rpc
         self.__dict__.update(sd)
         for s in self.__dict__:
-            if re.match('\d+', s):
+            if re.match(r'\d+', s):
                 if 'plugins' not in self.__dict__[s]:
                     self.__dict__[s]['plugins'] = []
                 if 'write_dir' not in self.__dict__[s]:
@@ -1861,22 +1861,22 @@ class MeterpreterSession(MsfSession):
         self.run_with_output(cmd, end_strs)
         return True
 
-    def import_psh_script(self, script_path):
+    def import_psh(self, script_path):
         """
-        Import a powershell script
+        Import a powershell script.
 
         Mandatory Arguments:
         - script_path : Path on the local machine to the Powershell script.
         """
         if 'powershell' not in self.info['plugins']:
             self.load_plugin('powershell')
-        end_strs = ['failed to load', 'successfully imported', 'Errno::']
+        end_strs = ['[-]', '[+]']
         out = self.run_with_output(f'powershell_import {script_path}', end_strs)
         if 'failed to load' in out:
             raise MsfRpcError(f'File {script_path} failed to load.')
         return out
 
-    def run_long_psh_cmd(self, ps_cmd):
+    def run_psh_cmd(self, ps_cmd, timeout=310, timeout_exception=True):
         """
         Runs a powershell command and get the output.
 
@@ -1885,16 +1885,9 @@ class MeterpreterSession(MsfSession):
         """
         if 'powershell' not in self.info['plugins']:
             self.load_plugin('powershell')
-        log_name = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(8))
-        write_path = self.get_writeable_dir() +  + '.txt'
-        redir_out = ' > ' + write_dir + ps_cmd.split()[0] + '.txt'
-        ps_cmd = f'powershell_execute "{ps_cmd}{redir_out}"'
-        out = self.run_with_output(ps_cmd, ['[-]', '[+]'])
-        if '2148734468' not in out:
-            return out
-        while '2148734468' in out:
-            cmd = 'powershell_execute Write-Host'
-            out = self.run_with_output(cmd, ['[-]', '[+]'])
+        ps_cmd = f'powershell_execute "{ps_cmd}"'
+        out = self.run_with_output(ps_cmd, ['[-]', '[+]'], timeout=timeout, timeout_exception=timeout_exception)
+        return out
 
     def get_writeable_dir(self):
         """
