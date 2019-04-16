@@ -5,6 +5,8 @@ from pymetasploit3.utils import *
 import requests
 import uuid
 import time
+import re
+import random
 import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
 
@@ -1683,6 +1685,12 @@ class MsfSession(object):
         self.sid = sid
         self.rpc = rpc
         self.__dict__.update(sd)
+        for s in self.__dict__:
+            if re.match('\d+', s):
+                if 'plugins' not in self.__dict__[s]:
+                    self.__dict__[s]['plugins'] = []
+                if 'write_dir' not in self.__dict__[s]:
+                    self.__dict__[s]['write_dir'] = ''
 
     def stop(self):
         """
@@ -1700,46 +1708,6 @@ class MsfSession(object):
     @property
     def ring(self):
         return SessionRing(self.rpc, self.sid)
-
-
-class SessionRing(object):
-
-    def __init__(self, rpc, token):
-        self.rpc = rpc
-        self.sid = token
-
-    def read(self, seq=None):
-        """
-        Reads the session ring.
-
-        Optional Keyword Arguments:
-        - seq : the sequence ID of the ring (default: 0)
-        """
-        if seq is not None:
-            return self.rpc.call(MsfRpcMethod.SessionRingRead, [self.sid, seq])
-        return self.rpc.call(MsfRpcMethod.SessionRingRead, [self.sid])
-
-    def put(self, line):
-        """
-        Add a command to the session history.
-
-        Mandatory Arguments:
-        - line : arbitrary data.
-        """
-        self.rpc.call(MsfRpcMethod.SessionRingPut, [self.sid, line])
-
-    @property
-    def last(self):
-        """
-        Returns the last sequence ID in the session ring.
-        """
-        return int(self.rpc.call(MsfRpcMethod.SessionRingLast, [self.sid])['seq'])
-
-    def clear(self):
-        """
-        Clear the session ring.
-        """
-        return self.rpc.call(MsfRpcMethod.SessionRingClear, [self.sid])
 
 
 class MeterpreterSession(MsfSession):
@@ -1793,13 +1761,13 @@ class MeterpreterSession(MsfSession):
         """
         The operating system path separator.
         """
-        return self.rpc.call(MsfRpcMethod.SessionMeterpreterDirectorySeparator, self.sid)['separator']
+        return self.rpc.call(MsfRpcMethod.SessionMeterpreterDirectorySeparator, [self.sid])['separator']
 
     def detach(self):
         """
         Detach the meterpreter session.
         """
-        return self.rpc.call(MsfRpcMethod.SessionMeterpreterSessionDetach, self.sid)
+        return self.rpc.call(MsfRpcMethod.SessionMeterpreterSessionDetach, [self.sid])
 
     def kill(self):
         """
@@ -1816,7 +1784,19 @@ class MeterpreterSession(MsfSession):
         """
         return self.rpc.call(MsfRpcMethod.SessionMeterpreterTabs, [self.sid, line])['tabs']
 
-    def run_with_output(self, cmd, end_strs, timeout=301, timeout_exception=True):
+    def load_plugin(self, plugin):
+        """
+        Loads a session plugin
+
+        Mandatory Arguments:
+        - plugin : name of plugin.
+        """
+        end_strs = ['Success', 'has already been loaded']
+        out = self.run_with_output(f'load {plugin}', end_strs)
+        self.__dict__[self.sid]['plugins'].append(plugin)
+        return out
+
+    def run_with_output(self, cmd, end_strs, timeout=301, timeout_exception=True, api_call='write'):
         """
         Run a command and wait for the output.
 
@@ -1829,7 +1809,11 @@ class MeterpreterSession(MsfSession):
         - timeout_exception : If True, library will throw an error when it hits the timeout.
                               If False, library will simply return whatever output it got within the timeout limit.
         """
-        out = self.runsingle(cmd)
+        if api_call == 'write':
+            self.write(cmd)
+            out = ''
+        else:
+            out = self.runsingle(cmd)
         out += self.gather_output(cmd, out, end_strs, timeout, timeout_exception)
         return out
 
@@ -1861,6 +1845,7 @@ class MeterpreterSession(MsfSession):
         self.start_shell()
         out = self.run_with_output(cmd, end_strs)
         if exit_shell == True:
+            self.read() # Clear buffer
             res = self.detach()
             if 'result' in res:
                 if res['result'] != 'success':
@@ -1875,6 +1860,94 @@ class MeterpreterSession(MsfSession):
         end_strs = ['>']
         self.run_with_output(cmd, end_strs)
         return True
+
+    def import_psh_script(self, script_path):
+        """
+        Import a powershell script
+
+        Mandatory Arguments:
+        - script_path : Path on the local machine to the Powershell script.
+        """
+        if 'powershell' not in self.info['plugins']:
+            self.load_plugin('powershell')
+        end_strs = ['failed to load', 'successfully imported', 'Errno::']
+        out = self.run_with_output(f'powershell_import {script_path}', end_strs)
+        if 'failed to load' in out:
+            raise MsfRpcError(f'File {script_path} failed to load.')
+        return out
+
+    def run_long_psh_cmd(self, ps_cmd):
+        """
+        Runs a powershell command and get the output.
+
+        Mandatory Arguments:
+        - ps_cmd : command to run in the session.
+        """
+        if 'powershell' not in self.info['plugins']:
+            self.load_plugin('powershell')
+        log_name = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(8))
+        write_path = self.get_writeable_dir() +  + '.txt'
+        redir_out = ' > ' + write_dir + ps_cmd.split()[0] + '.txt'
+        ps_cmd = f'powershell_execute "{ps_cmd}{redir_out}"'
+        out = self.run_with_output(ps_cmd, ['[-]', '[+]'])
+        if '2148734468' not in out:
+            return out
+        while '2148734468' in out:
+            cmd = 'powershell_execute Write-Host'
+            out = self.run_with_output(cmd, ['[-]', '[+]')
+
+    def get_writeable_dir(self):
+        """
+        Gets the temp directory which we are assuming is writeable
+        """
+        if self.info['write_dir'] == '':
+            out = self.run_shell_cmd_with_output('echo %TEMP%', ['>'])
+            # Example output: 'echo %TEMP%\nC:\\Users\\user\\AppData\\Local\\Temp\r\n\r\nC:\\Windows\\system32>'
+            write_dir = out.split('\n')[1][:-1] + '\\'
+            self.__dict__[self.sid]['write_dir'] = write_dir
+            return write_dir
+        else:
+            return self.info['write_dir']
+
+
+class SessionRing(object):
+
+    def __init__(self, rpc, token):
+        self.rpc = rpc
+        self.sid = token
+
+    def read(self, seq=None):
+        """
+        Reads the session ring.
+
+        Optional Keyword Arguments:
+        - seq : the sequence ID of the ring (default: 0)
+        """
+        if seq is not None:
+            return self.rpc.call(MsfRpcMethod.SessionRingRead, [self.sid, seq])
+        return self.rpc.call(MsfRpcMethod.SessionRingRead, [self.sid])
+
+    def put(self, line):
+        """
+        Add a command to the session history.
+
+        Mandatory Arguments:
+        - line : arbitrary data.
+        """
+        self.rpc.call(MsfRpcMethod.SessionRingPut, [self.sid, line])
+
+    @property
+    def last(self):
+        """
+        Returns the last sequence ID in the session ring.
+        """
+        return int(self.rpc.call(MsfRpcMethod.SessionRingLast, [self.sid])['seq'])
+
+    def clear(self):
+        """
+        Clear the session ring.
+        """
+        return self.rpc.call(MsfRpcMethod.SessionRingClear, [self.sid])
 
 
 class ShellSession(MsfSession):
@@ -1903,7 +1976,7 @@ class ShellSession(MsfSession):
         self.rpc.call(MsfRpcMethod.SessionShellUpgrade, [self.sid, lhost, lport])
         return self.read()
 
-    def run_with_output(self, cmd, end_strs, timeout=301):
+    def run_with_output(self, cmd, end_strs, timeout=310):
         """
         Run a command and wait for the output.
 
