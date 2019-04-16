@@ -1894,7 +1894,7 @@ class MeterpreterSession(MsfSession):
             return out
         while '2148734468' in out:
             cmd = 'powershell_execute Write-Host'
-            out = self.run_with_output(cmd, ['[-]', '[+]')
+            out = self.run_with_output(cmd, ['[-]', '[+]'])
 
     def get_writeable_dir(self):
         """
