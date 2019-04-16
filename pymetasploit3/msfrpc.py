@@ -186,7 +186,7 @@ class MsfRpcClient(object):
 
     def __init__(self, password, **kwargs):
         self.uri = kwargs.get('uri', '/api/')
-        self.port = kwargs.get('port', 55552)
+        self.port = kwargs.get('port', 55553)
         self.host = kwargs.get('server', '127.0.0.1')
         self.ssl = kwargs.get('ssl', False)
         self.token = kwargs.get('token')

@@ -13,7 +13,9 @@ Original project  : https://github.com/allfro/pymetasploit
 
     git clone https://github.com/DanMcInerney/pymetasploit3
     cd [Download path]/pymetasploit3
-    pip3 install pymetasploit3 --user (or omit --user to install system-wide, not recommended)
+    pipenv install --three
+    pipenv shell
+    pip3 install pymetasploit3
 
 # Basic Usage
 
@@ -39,6 +41,14 @@ $ msfrpcd -P yourpassword
 >>> from pymetasploit3.msfrpc import MsfRpcClient
 >>> client = MsfRpcClient('yourpassword')
 ```
+### Connecting to `msfconsole` with `msgrpc` plugin loaded
+
+```python
+>>> from pymetasploit3.msfrpc import MsfRpcClient
+>>> client = MsfRpcClient('yourpassword', port=55553)
+```
+
+### MsfRpcClient
 
 The `MsfRpcClient` class provides the core functionality to navigate through the Metasploit framework. Use 
 ```dir(client)``` to see the callable methods.
@@ -212,5 +222,5 @@ Many other usage examples can be found in the `example_usage.py` file.
 
 # Contributions
 
-I highly encourage contributors to send in any and all pull requests or issues. And thank you to allfro for writing
+I highly encourage contributors to send in any and all pull requests or issues. Thank you to allfro for writing
 the original pymetasploit library.
