@@ -1752,7 +1752,8 @@ class MeterpreterSession(MsfSession):
             out = ''
         else:
             out = self.runsingle(cmd)
-        out += self.gather_output(cmd, out, end_strs, timeout, timeout_exception)
+        time.sleep(1)
+        out += self.gather_output(cmd, out, end_strs, timeout, timeout_exception) # gather last of data buffer
         return out
 
     def gather_output(self, cmd, out, end_strs, timeout, timeout_exception):
