@@ -19,7 +19,6 @@ __all__ = [
     'NotesTable',
     'LootsTable',
     'CredsTable',
-    'AuthInfoTable',
     'HostsTable',
     'ServicesTable',
     'VulnsTable',
@@ -97,8 +96,6 @@ class MsfRpcMethod(object):
     DbReportClient = 'db.report_client'
     DbReportNote = 'db.report_note'
     DbNotes = 'db.notes'
-    DbReportAuthInfo = 'db.report_auth_info'
-    DbGetAuthInfo = 'db.get_auth_info'
     DbGetRef = 'db.get_ref'
     DbDelVuln = 'db.del_vuln'
     DbDelNote = 'db.del_note'
@@ -468,6 +465,7 @@ class LootsTable(MsfTable):
     update = report
 
 
+# Apparently there is no db.report_creds or db_get_cred API call
 class CredsTable(MsfTable):
 
     @property
@@ -483,70 +481,6 @@ class CredsTable(MsfTable):
         - offset : skip n results.
         """
         return super(CredsTable, self).records('creds', **kwargs)
-
-    def report(self, host, port, **kwargs):
-        """
-        Store a set of credentials in the database.
-
-        Mandatory Arguments:
-        - host : an IP address or Host object reference
-        - port : a port number
-
-        Optional Keyword Arguments:
-        - user : the username.
-        - password : the password, or path to ssh_key.
-        - ptype : the type of password (password(ish), hash, or ssh_key).
-        - proto : a transport name for the port.
-        - sname : service name.
-        - active : by default, a cred is active, unless explicitly false.
-        - proof : data used to prove the account is actually active.
-
-        Sources: Credentials can be sourced from another credential, or from
-        a vulnerability. For example, if an exploit was used to dump the
-        smb_hashes, and this credential comes from there, the source_id would
-        be the Vuln id (as reported by report_vuln) and the type would be "Vuln".
-
-        - source_id : The Vuln or Cred id of the source of this cred.
-        - source_type : Either Vuln or Cred.
-        """
-        kwargs.update({'host': host, 'port': port})
-        kwargs['pass'] = kwargs.get('password')
-        self.dbreport('cred', kwargs)
-
-    update = report
-
-
-class AuthInfoTable(MsfTable):
-
-    def report(self, host, port, **kwargs):
-        """
-        Store a set of credentials in the database.
-
-        Mandatory Arguments:
-        - host : an IP address or Host object reference
-        - port : a port number
-
-        Optional Keyword Arguments:
-        - user : the username.
-        - pass : the password, or path to ssh_key.
-        - ptype : the type of password (password(ish), hash, or ssh_key).
-        - proto : a transport name for the port.
-        - sname : service name.
-        - active : by default, a cred is active, unless explicitly false.
-        - proof : data used to prove the account is actually active.
-
-        Sources: Credentials can be sourced from another credential, or from
-        a vulnerability. For example, if an exploit was used to dump the
-        smb_hashes, and this credential comes from there, the source_id would
-        be the Vuln id (as reported by report_vuln) and the type would be "Vuln".
-
-        - source_id : The Vuln or Cred id of the source of this cred.
-        - source_type : Either Vuln or Cred.
-        """
-        kwargs.update({'host': host, 'port': port})
-        self.dbreport('auth_info', kwargs)
-
-    update = report
 
 
 class HostsTable(MsfTable):
@@ -758,7 +692,7 @@ class VulnsTable(MsfTable):
         """
         if not any([i in kwargs for i in ('addr', 'address', 'host')]):
             raise TypeError('Expected addr, address, or host.')
-        return self.dbreport('vuln', kwargs)
+        return self.dbget('vuln', kwargs)
 
     update = report
 
@@ -1001,7 +935,11 @@ class WorkspaceManager(MsfManager):
         Mandatory Arguments:
         - name : the name of the workspace
         """
-        return self.rpc.call(MsfRpcMethod.DbGetWorkspace, [name])['workspace']
+        res = self.rpc.call(MsfRpcMethod.DbGetWorkspace, [name])
+        if 'workspace' in res:
+            return res['workspace']
+        else:
+            return
 
     def remove(self, name):
         """
