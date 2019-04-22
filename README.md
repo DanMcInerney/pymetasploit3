@@ -13,9 +13,12 @@ Original project  : https://github.com/allfro/pymetasploit
 
     mkdir your-project
     cd your-project
-    pipenv install --three 
+    pipenv install --three pymetasploit3
     pipenv shell
-    pip3 install pymetasploit3
+    
+or:
+
+    pip3 install --user pymetasploit3
 
 # Basic Usage
 
@@ -81,21 +84,6 @@ Explore exploit modules:
 'windows/vnc/winvnc_http_get', 'windows/vnc/ultravnc_viewer_bof', 'windows/vnc/ultravnc_client', ...
 'aix/rpc_ttdbserverd_realpath', 'aix/rpc_cmsd_opcode21']
 >>>
-```
-
-Explore other modules:
-
-```python
->>> client.modules.auxiliary
-...
->>> client.modules.encoders
-...
->>> client.modules.nops
-...
->>> client.modules.payloads
-...
->>> client.modules.post
-...
 ```
 
 Create an exploit module object:
