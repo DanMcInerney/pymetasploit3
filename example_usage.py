@@ -24,7 +24,7 @@ for s in client.sessions.list.keys():
 shell = client.sessions.session(list(client.sessions.list.keys())[0])
 
 # Write to the shell
-shell.write('whoami\n')
+shell.write('whoami')
 
 # Print the output
 print(shell.read())
@@ -147,7 +147,7 @@ client.sessions.list
 client.sessions.session('1').info
 
 # Write to a session
-client.sessions.session('1').write('help\n')
+client.sessions.session('1').write('help')
 
 # Read a session
 client.sessions.session('1').read()
