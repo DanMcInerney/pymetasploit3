@@ -1734,7 +1734,7 @@ class MeterpreterSession(MsfSession):
         self.__dict__[self.sid]['plugins'].append(plugin)
         return out
 
-    def run_with_output(self, cmd, end_strs, timeout=301, timeout_exception=True, api_call='write'):
+    def run_with_output(self, cmd, end_strs=None, timeout=301, timeout_exception=True, api_call='write'):
         """
         Run a command and wait for the output.
 
@@ -1760,17 +1760,23 @@ class MeterpreterSession(MsfSession):
         """
         Wait for session command to get all output.
         """
-        counter = 0
-        while counter < timeout + 1:
-            time.sleep(1)
+        counter = 1
+        while counter < timeout:
             out += self.read()
-            if any(end_str in out for end_str in end_strs):
-                return out
+            if end_strs == None:
+                if len(out) > 0:
+                    return out
+            else:
+                if any(end_str in out for end_str in end_strs):
+                    return out
+            time.sleep(1)
             counter += 1
 
         if timeout_exception:
-            raise MsfError(f"Command <{repr(cmd)[1:-1]}> timed out in <{timeout}s> on session <{self.sid}> "
-                           f"without finding any termination strings within <{end_strs}> in the output: <{out}>")
+            msg = f"Command <{repr(cmd)[1:-1]}> timed out in <{timeout}s> on session <{self.sid}>"
+            if end_strs == None:
+                msg += f" without finding any termination strings within <{end_strs}> in the output: <{out}>"
+            raise MsfError(msg)
         else:
             return out
 

@@ -115,8 +115,6 @@ Explore exploit information:
           June 30th 2011 and July 1st 2011 according to the most recent information
           available. This backdoor was removed on July 3rd 2011.
 
->>> exploit.authors
-[pymetasploit3, pymetasploit3]
 >>> exploit.options
 ['TCP::send_delay', 'ConnectTimeout', 'SSLVersion', 'VERBOSE', 'SSLCipher', 'CPORT', 'SSLVerifyMode', 'SSL', 'WfsDelay',
 'CHOST', 'ContextInformationFile', 'WORKSPACE', 'EnableContextEncoding', 'TCP::max_send_size', 'Proxies',
