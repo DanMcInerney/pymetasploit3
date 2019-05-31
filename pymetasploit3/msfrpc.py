@@ -1966,10 +1966,10 @@ class SessionManager(MsfManager):
         if sid not in s:
             for k in s:
                 if s[k]['uuid'] == sid:
-                    if s[sid]['type'] == 'meterpreter':
-                        return MeterpreterSession(sid, self.rpc, s)
-                    elif s[sid]['type'] == 'shell':
-                        return ShellSession(sid, self.rpc, s)
+                    if s[k]['type'] == 'meterpreter':
+                        return MeterpreterSession(k, self.rpc, s)
+                    elif s[k]['type'] == 'shell':
+                        return ShellSession(k, self.rpc, s)
             raise KeyError('Session ID (%s) does not exist' % sid)
         if s[sid]['type'] == 'meterpreter':
             return MeterpreterSession(sid, self.rpc, s)
