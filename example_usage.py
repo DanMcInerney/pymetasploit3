@@ -129,7 +129,7 @@ exploit.execute(payload='cmd/unix/interact')
 
 # Execute the module and return the output
 cid = client.consoles.console().cid
-client.consoles.console(cid).execute_module_with_output(exploit, payload='cmd/unix/interact')
+client.consoles.console(cid).run_module_with_output(exploit, payload='cmd/unix/interact')
 # >>> '... [-] 127.0.0.1:21 - Exploit failed [unreachable]: Rex::ConnectionRefused \
 # 	   The connection was refused by the remote host (127.0.0.1:21).\n[*] Exploit completed, but no session was created.\n'
 
