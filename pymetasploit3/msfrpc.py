@@ -2069,7 +2069,8 @@ class MsfConsole(object):
         if mod.moduletype == 'exploit':
             if payload:
                 options_str += 'set payload {}\n'.format(payload)
-        options_str += 'run'
+        # Run the module without directly opening a command line
+        options_str += 'run -z'
         self.rpc.consoles.console(self.cid).write(options_str)
         # Sometimes it takes a while for the console to write all the options
         # While it's writing the options the console will not be busy
