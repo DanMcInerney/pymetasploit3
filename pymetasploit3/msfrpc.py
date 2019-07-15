@@ -2072,14 +2072,11 @@ class MsfConsole(object):
         # Run the module without directly opening a command line
         options_str += 'run -z'
         self.rpc.consoles.console(self.cid).write(options_str)
-        # Sometimes it takes a while for the console to write all the options
-        # While it's writing the options the console will not be busy
-        while not self.rpc.consoles.console(self.cid).is_busy():
-            time.sleep(.5)
-        # After it's done writing all the options then the console will turn busy as the module runs
-        while self.rpc.consoles.console(self.cid).is_busy():
+        data = ''
+        while data == '' or self.rpc.consoles.console(self.cid).is_busy():
             time.sleep(1)
-        return self.rpc.consoles.console(self.cid).read()['data']
+            data += self.rpc.consoles.console(self.cid).read()['data']
+        return data
 
 
 class ConsoleManager(MsfManager):
