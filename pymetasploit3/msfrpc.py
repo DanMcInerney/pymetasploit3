@@ -2056,19 +2056,35 @@ class MsfConsole(object):
         Execute a module and wait for the returned data
 
         Mandatory Arguments:
-        - cid : the console identifier.
-        - mod : the ModuleManager object
+        - mod : the MsfModule object
+
+        Optional Keyword Arguments:
+        - payload : the MsfModule object to be used as payload
         """
         options_str = 'use {}/{}\n'.format(mod.moduletype, mod.modulename)
         if self.rpc.consoles.console(self.cid).is_busy():
-            raise MsfError('Console %s is busy' % self.cid)
+            raise MsfError('Console {} is busy'.format(self.cid))
         self.rpc.consoles.console(self.cid).read() # clear data buffer
         opts = mod.runoptions
+        if payload is None:
+            opts['DisablePayloadHandler'] = True
         for k in opts.keys():
             options_str += 'set {} {}\n'.format(k, opts[k])
+        # Set payload params
         if mod.moduletype == 'exploit':
-            if payload:
-                options_str += 'set payload {}\n'.format(payload)
+            if 'DisablePayloadHandler' in opts and opts['DisablePayloadHandler']:
+                pass
+            elif isinstance(payload, PayloadModule):
+                if payload.modulename not in mod.payloads:
+                    raise ValueError(
+                        'Invalid payload ({}) for given target ({}).'.format(payload.modulename, mod.target))
+                options_str += 'set payload {}\n'.format(payload.modulename)
+                for k, v in payload.runoptions.items():
+                    if v is None or (isinstance(v, str) and not v):
+                        continue
+                    options_str += 'set {} {}\n'.format(k, v)
+            else:
+                raise ValueError('No valid PayloadModule provided for exploit execution.')
         # Run the module without directly opening a command line
         options_str += 'run -z'
         self.rpc.consoles.console(self.cid).write(options_str)
