@@ -187,6 +187,7 @@ class MsfRpcClient(object):
         self.host = kwargs.get('server', '127.0.0.1')
         self.ssl = kwargs.get('ssl', False)
         self.token = kwargs.get('token')
+        self.encoding = kwargs.get('encoding', 'utf-8')
         self.headers = {"Content-type": "binary/message-pack"}
         self.login(kwargs.get('username', 'msf'), password)
 
@@ -210,7 +211,7 @@ class MsfRpcClient(object):
 
         opts[:] = []  # Clear opts list
 
-        return convert(decode(r.content))  # convert all keys/vals to utf8
+        return convert(decode(r.content), self.encoding)  # convert all keys/vals to utf8
 
     def login(self, user, password):
         auth = self.call(MsfRpcMethod.AuthLogin, [user, password])
