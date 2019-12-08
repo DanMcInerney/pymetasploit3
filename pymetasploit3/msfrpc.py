@@ -189,8 +189,9 @@ class MsfRpcClient(object):
         self.token = kwargs.get('token')
         self.headers = {"Content-type": "binary/message-pack"}
         self.login(kwargs.get('username', 'msf'), password)
+        self.encoding = kwargs.get(encoding, 'utf-8')
 
-    def call(self, method, opts=[]):
+    def call(self, method, opts=[], encoding="utf-8"):
         if method != 'auth.login':
             if self.token is None:
                 raise MsfAuthError("MsfRPC: Not Authenticated")
@@ -210,7 +211,7 @@ class MsfRpcClient(object):
 
         opts[:] = []  # Clear opts list
 
-        return convert(decode(r.content))  # convert all keys/vals to utf8
+        return convert(decode(r.content), self.encoding)  # convert all keys/vals to utf8
 
     def login(self, user, password):
         auth = self.call(MsfRpcMethod.AuthLogin, [user, password])
