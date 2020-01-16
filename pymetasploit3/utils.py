@@ -40,4 +40,4 @@ def encode(data):
     return msgpack.packb(data)
 
 def decode(data):
-    return msgpack.unpackb(data)
+    return msgpack.unpackb(data, strict_map_key=False)
