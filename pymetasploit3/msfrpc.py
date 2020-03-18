@@ -2052,7 +2052,7 @@ class MsfConsole(object):
             if c['id'] == self.cid:
                 return c['busy']
 
-    def run_module_with_output(self, mod, payload=None):
+    def run_module_with_output(self, mod, payload=None, run_as_job=False):
         """
         Execute a module and wait for the returned data
 
@@ -2088,6 +2088,8 @@ class MsfConsole(object):
                 raise ValueError('No valid PayloadModule provided for exploit execution.')
         # Run the module without directly opening a command line
         options_str += 'run -z'
+        if run_as_job:
+            options_str += " -j"
         self.rpc.consoles.console(self.cid).write(options_str)
         data = ''
         while data == '' or self.rpc.consoles.console(self.cid).is_busy():
