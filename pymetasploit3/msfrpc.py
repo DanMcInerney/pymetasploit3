@@ -1262,6 +1262,11 @@ class MsfModule(object):
             if 'default' in self._moptions[o]:
                 self._runopts[o] = self._moptions[o]['default']
 
+        if mtype in ["auxiliary", "post"]:
+            d_act = self._info.get('default_action')
+            if d_act is not None:
+                self._moptions['ACTION'] = {"default": d_act}
+
     @property
     def options(self):
         """
@@ -1456,6 +1461,7 @@ class PostModule(MsfModule):
         - post : the name of the post exploitation module.
         """
         super(PostModule, self).__init__(rpc, 'post', post)
+        self._action = self._info.get('default_action', "")
 
     @property
     def sessions(self):
@@ -1463,6 +1469,17 @@ class PostModule(MsfModule):
         A list of compatible shell/meterpreter sessions.
         """
         return self.rpc.compatiblesessions(self.modulename)
+
+    @property
+    def action(self):
+        return self._action
+
+    @action.setter
+    def action(self, action):
+        if action not in self.actions.values():
+            raise ValueError('Action must be one of %s' % repr(list(self.actions.values())))
+        self._action = action
+        self._runopts['ACTION'] = self._action
 
 
 class EncoderModule(MsfModule):
@@ -1489,6 +1506,18 @@ class AuxiliaryModule(MsfModule):
         - auxiliary : the name of the auxiliary module.
         """
         super(AuxiliaryModule, self).__init__(rpc, 'auxiliary', auxiliary)
+        self._action = self._info.get('default_action', "")
+
+    @property
+    def action(self):
+        return self._action
+
+    @action.setter
+    def action(self, action):
+        if action not in self.actions.values():
+            raise ValueError('Action must be one of %s' % repr(list(self.actions.values())))
+        self._action = action
+        self._runopts['ACTION'] = self._action
 
 
 class PayloadModule(MsfModule):
@@ -2130,5 +2159,3 @@ class ConsoleManager(MsfManager):
         - cid : the console identifier.
         """
         self.rpc.call(MsfRpcMethod.ConsoleDestroy, [cid])
-
-
