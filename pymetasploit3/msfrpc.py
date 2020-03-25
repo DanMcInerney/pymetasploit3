@@ -1265,7 +1265,9 @@ class MsfModule(object):
         if mtype in ["auxiliary", "post"]:
             d_act = self._info.get('default_action')
             if d_act is not None:
-                self._moptions['ACTION'] = {"default": d_act}
+                act = 'ACTION'
+                self._moptions[act] = {"default": d_act}
+                self._runopts[act] = self._moptions[act]['default']
 
     @property
     def options(self):
