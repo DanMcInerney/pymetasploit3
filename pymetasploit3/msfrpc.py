@@ -2069,10 +2069,10 @@ class MsfConsole(object):
         opts = mod.runoptions
         if payload is None:
             opts['DisablePayloadHandler'] = True
-        for k in opts.keys():
-            options_str += 'set {} {}\n'.format(k, opts[k])
+
         # Set payload params
         if mod.moduletype == 'exploit':
+            opts['TARGET'] = mod.target
             if 'DisablePayloadHandler' in opts and opts['DisablePayloadHandler']:
                 pass
             elif isinstance(payload, PayloadModule):
@@ -2086,6 +2086,11 @@ class MsfConsole(object):
                     options_str += 'set {} {}\n'.format(k, v)
             else:
                 raise ValueError('No valid PayloadModule provided for exploit execution.')
+
+        # Set module params
+        for k in opts.keys():
+            options_str += 'set {} {}\n'.format(k, opts[k])
+
         # Run the module without directly opening a command line
         options_str += 'run -z'
         if run_as_job:
