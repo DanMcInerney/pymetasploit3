@@ -8,6 +8,7 @@ import time
 import re
 import random
 import requests.packages.urllib3
+from retry import retry
 requests.packages.urllib3.disable_warnings()
 
 __all__ = [
@@ -207,11 +208,15 @@ class MsfRpcClient(object):
         opts.insert(0, method)
         payload = encode(opts)
 
-        r = requests.post(url, data=payload, headers=self.headers, verify=False)
+        r = self.post_request(url, payload)
 
         opts[:] = []  # Clear opts list
 
         return convert(decode(r.content), self.encoding)  # convert all keys/vals to utf8
+
+    @retry(tries=3, delay=1, backoff=2)
+    def post_request(self, url, payload):
+        return requests.post(url, data=payload, headers=self.headers, verify=False)
 
     def login(self, user, password):
         auth = self.call(MsfRpcMethod.AuthLogin, [user, password])
