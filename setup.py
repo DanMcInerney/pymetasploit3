@@ -22,7 +22,8 @@ setup(
     ],
     install_requires=[
         'msgpack',
-        'requests'
+        'requests',
+        'retry'
     ],
     url='https://github.com/DanMcInerney/pymetasploit3',
     download_url='https://github.com/DanMcInerney/pymetasploit3/zipball/master',
