@@ -43,13 +43,13 @@ $ msfrpcd -P yourpassword -S
 
 ```python
 >>> from pymetasploit3.msfrpc import MsfRpcClient
->>> client = MsfRpcClient('yourpassword')
+>>> client = MsfRpcClient('yourpassword', ssl=True)
 ```
 ### Connecting to `msfconsole` with `msgrpc` plugin loaded
 
 ```python
 >>> from pymetasploit3.msfrpc import MsfRpcClient
->>> client = MsfRpcClient('yourpassword', port=55552)
+>>> client = MsfRpcClient('yourpassword', port=55552, True)
 ```
 
 ### MsfRpcClient
