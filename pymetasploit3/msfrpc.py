@@ -126,6 +126,7 @@ class MsfRpcMethod(object):
     ModulePayloads = 'module.payloads'
     ModuleEncoders = 'module.encoders'
     ModuleNops = 'module.nops'
+    ModulePlatforms = 'module.platforms'
     ModulePost = 'module.post'
     ModuleInfo = 'module.info'
     ModuleCompatiblePayloads = 'module.compatible_payloads'
@@ -1624,6 +1625,13 @@ class ModuleManager(MsfManager):
         """
         return self.rpc.call(MsfRpcMethod.ModuleNops)['modules']
 
+    @property
+    def platforms(self):
+        """
+        A list of nop modules.
+        """
+        return self.rpc.call(MsfRpcMethod.ModulePlatforms)
+
     def use(self, mtype, mname):
         """
         Returns a module object.
@@ -1790,7 +1798,7 @@ class MeterpreterSession(MsfSession):
         else:
             out = self.runsingle(cmd)
         time.sleep(1)
-        out += self.gather_output(cmd, out, end_strs, timeout, timeout_exception) # gather last of data buffer
+        out += self.gather_output(cmd, out, end_strs, timeout, timeout_exception)  # gather last of data buffer
         return out
 
     def gather_output(self, cmd, out, end_strs, timeout, timeout_exception):
@@ -1827,7 +1835,7 @@ class MeterpreterSession(MsfSession):
         self.start_shell()
         out = self.run_with_output(cmd, end_strs)
         if exit_shell == True:
-            self.read() # Clear buffer
+            self.read()  # Clear buffer
             res = self.detach()
             if 'result' in res:
                 if res['result'] != 'success':
@@ -1990,7 +1998,7 @@ class SessionManager(MsfManager):
         """
         A list of active sessions.
         """
-        return {str(k): v for k, v in self.rpc.call(MsfRpcMethod.SessionList).items()} # Convert int id to str
+        return {str(k): v for k, v in self.rpc.call(MsfRpcMethod.SessionList).items()}  # Convert int id to str
 
     def session(self, sid):
         """
@@ -2101,7 +2109,7 @@ class MsfConsole(object):
         options_str = 'use {}/{}\n'.format(mod.moduletype, mod.modulename)
         if self.rpc.consoles.console(self.cid).is_busy():
             raise MsfError('Console {} is busy'.format(self.cid))
-        self.rpc.consoles.console(self.cid).read() # clear data buffer
+        self.rpc.consoles.console(self.cid).read()  # clear data buffer
         opts = mod.runoptions
         if payload is None:
             opts['DisablePayloadHandler'] = True
