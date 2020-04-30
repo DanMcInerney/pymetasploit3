@@ -7,6 +7,7 @@ import uuid
 import time
 import re
 import random
+import msgpack
 import requests.packages.urllib3
 from retry import retry
 requests.packages.urllib3.disable_warnings()
@@ -193,7 +194,7 @@ class MsfRpcClient(object):
         self.headers = {"Content-type": "binary/message-pack"}
         self.login(kwargs.get('username', 'msf'), password)
 
-    def call(self, method, opts=[]):
+    def call(self, method, opts=[], is_raw=False):
         if method != 'auth.login':
             if self.token is None:
                 raise MsfAuthError("MsfRPC: Not Authenticated")
@@ -212,6 +213,9 @@ class MsfRpcClient(object):
         r = self.post_request(url, payload)
 
         opts[:] = []  # Clear opts list
+
+        if is_raw:
+            return r.content
 
         return convert(decode(r.content), self.encoding)  # convert all keys/vals to utf8
 
@@ -1376,6 +1380,20 @@ class MsfModule(object):
         """
         for k in d:
             self[k] = d[k]
+
+    def payload_generate(self, **kwargs):
+        runopts = self.runoptions.copy()
+        if not isinstance(self, PayloadModule):
+            return None
+        data = self.rpc.call(MsfRpcMethod.ModuleExecute, [self.moduletype, self.modulename, runopts], True)
+        payload = decode(data)[str.encode('payload')]
+        if isinstance(payload, str):
+            return payload
+        try:
+            payload = decode(payload)
+        except (msgpack.exceptions.ExtraData, UnicodeDecodeError):
+            return payload
+        return payload
 
     def execute(self, **kwargs):
         """
