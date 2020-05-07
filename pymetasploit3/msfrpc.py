@@ -194,7 +194,9 @@ class MsfRpcClient(object):
         self.headers = {"Content-type": "binary/message-pack"}
         self.login(kwargs.get('username', 'msf'), password)
 
-    def call(self, method, opts=[], is_raw=False):
+    def call(self, method, opts=None, is_raw=False):
+        if not isinstance(opts, list):
+            opts = []
         if method != 'auth.login':
             if self.token is None:
                 raise MsfAuthError("MsfRPC: Not Authenticated")
