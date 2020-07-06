@@ -106,9 +106,9 @@ Explore exploit information:
 >>> exploit.options
 ['TCP::send_delay', 'ConnectTimeout', 'SSLVersion', 'VERBOSE', 'SSLCipher', 'CPORT', 'SSLVerifyMode', 'SSL', 'WfsDelay',
 'CHOST', 'ContextInformationFile', 'WORKSPACE', 'EnableContextEncoding', 'TCP::max_send_size', 'Proxies',
-'DisablePayloadHandler', 'RPORT', 'RHOST']
+'DisablePayloadHandler', 'RPORT', 'RHOSTS']
 >>> exploit.missing_required # Required options which haven't been set yet
-['RHOST']
+['RHOSTS']
 >>>
 ```
 
@@ -117,7 +117,7 @@ machine as our exploit target. It's running our favorite version of vsFTPd - 2.3
 module loaded. Our next step is to specify our target:
 
 ```python
->>> exploit['RHOST'] = '172.16.14.145' # IP of our target host
+>>> exploit['RHOSTS'] = '172.16.14.145' # IP of our target host
 >>>
 ```
 
