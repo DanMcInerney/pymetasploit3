@@ -1648,7 +1648,7 @@ class ModuleManager(MsfManager):
     @property
     def platforms(self):
         """
-        A list of nop modules.
+        A list of platform names.
         """
         return self.rpc.call(MsfRpcMethod.ModulePlatforms)
 
