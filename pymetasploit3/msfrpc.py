@@ -1445,6 +1445,7 @@ class MsfModule(object):
         Executes the check module with its run options as parameters.
 
         Optional Keyword Arguments:
+        - **kwargs : can contain any module options.
         """
         runopts = self.runoptions.copy()
         if isinstance(self, ExploitModule):
