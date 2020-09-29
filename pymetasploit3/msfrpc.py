@@ -137,6 +137,10 @@ class MsfRpcMethod(object):
     ModuleExecute = 'module.execute'
     ModuleEncodeFormats = 'module.encode_formats'
     ModuleEncode = 'module.encode'
+    ModuleSearch = 'module.search'
+    ModuleCompatibleSessions = 'module.compatible_sessions'
+    ModuleCheck = 'module.check'
+    ModuleResults = 'module.results'
     PluginLoad = 'plugin.load'
     PluginUnload = 'plugin.unload'
     PluginLoaded = 'plugin.loaded'
@@ -1436,6 +1440,44 @@ class MsfModule(object):
 
         return self.rpc.call(MsfRpcMethod.ModuleExecute, [self.moduletype, self.modulename, runopts])
 
+    def check(self, **kwargs):
+        """
+        Executes the check module with its run options as parameters.
+
+        Optional Keyword Arguments:
+        - **kwargs : can contain any module options.
+        """
+        runopts = self.runoptions.copy()
+        if isinstance(self, ExploitModule):
+            payload = kwargs.get('payload')
+            runopts['TARGET'] = self.target
+            if 'DisablePayloadHandler' in runopts and runopts['DisablePayloadHandler']:
+                pass
+            elif payload is None:
+                runopts['DisablePayloadHandler'] = True
+            else:
+                if isinstance(payload, PayloadModule):
+                    if payload.modulename not in self.payloads:
+                        raise ValueError(
+                            'Invalid payload (%s) for given target (%d).' % (payload.modulename, self.target)
+                        )
+                    runopts['PAYLOAD'] = payload.modulename
+                    for k, v in payload.runoptions.items():
+                        if v is None or (isinstance(v, str) and not v):
+                            continue
+                        if k not in runopts or runopts[k] is None or \
+                                (isinstance(runopts[k], str) and not runopts[k]):
+                            runopts[k] = v
+                #                    runopts.update(payload.runoptions)
+                elif isinstance(payload, str):
+                    if payload not in self.payloads:
+                        raise ValueError('Invalid payload (%s) for given target (%d).' % (payload, self.target))
+                    runopts['PAYLOAD'] = payload
+                else:
+                    raise TypeError("Expected type str or PayloadModule not '%s'" % type(kwargs['payload']).__name__)
+
+        return self.rpc.call(MsfRpcMethod.ModuleCheck, [self.moduletype, self.modulename, runopts])
+
 
 class ExploitModule(MsfModule):
 
@@ -1588,6 +1630,41 @@ class ModuleManager(MsfManager):
         - **kwargs : the module's run options
         """
         return self.rpc.call(MsfRpcMethod.ModuleExecute, [modtype, modname, kwargs])
+
+    def search(self, match):
+        """
+        Search the module.
+
+        Mandatory Arguments:
+        - match : the keyword to find (e.g. 'http')
+        """
+        return self.rpc.call(MsfRpcMethod.ModuleSearch, [match])
+        
+    def compatible_sessions(self, mname):
+        """
+        Find Compatible session for specific modules.
+
+        Mandatory Arguments:
+        - mname : the target module name
+        """
+        return self.rpc.call(MsfRpcMethod.ModuleCompatibleSessions, [mname])
+    
+    def check(self, mtype, mname, **kwargs):
+        """
+        Runs the check method of a module.
+
+        Mandatory Arguments:
+        - mtype : Module type
+        - mname : Module name
+
+        Optional Keyword Arguments:
+        - **kwargs : the module's run options
+        """
+        return self.rpc.call(MsfRpcMethod.ModuleCheck, [mtype, mname, kwargs])
+
+    def results(self, uuid):
+        return self.rpc.call(MsfRpcMethod.ModuleResults, [uuid])
+
 
     @property
     def exploits(self):
