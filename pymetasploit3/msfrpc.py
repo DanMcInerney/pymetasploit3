@@ -2130,7 +2130,7 @@ class MsfConsole(object):
         if self.rpc.consoles.console(self.cid).is_busy():
             raise MsfError('Console {} is busy'.format(self.cid))
         self.rpc.consoles.console(self.cid).read()  # clear data buffer
-        opts = mod.runoptions
+        opts = mod.runoptions.copy()
         if payload is None:
             opts['DisablePayloadHandler'] = True
 
