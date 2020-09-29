@@ -1648,7 +1648,7 @@ class ModuleManager(MsfManager):
     @property
     def platforms(self):
         """
-        A list of nop modules.
+        A list of platform names.
         """
         return self.rpc.call(MsfRpcMethod.ModulePlatforms)
 
@@ -2130,9 +2130,13 @@ class MsfConsole(object):
         if self.rpc.consoles.console(self.cid).is_busy():
             raise MsfError('Console {} is busy'.format(self.cid))
         self.rpc.consoles.console(self.cid).read()  # clear data buffer
-        opts = mod.runoptions
+        opts = mod.runoptions.copy()
         if payload is None:
             opts['DisablePayloadHandler'] = True
+
+        # Set module params
+        for k in opts.keys():
+            options_str += 'set {} {}\n'.format(k, opts[k])
 
         # Set payload params
         if mod.moduletype == 'exploit':
@@ -2150,10 +2154,6 @@ class MsfConsole(object):
                     options_str += 'set {} {}\n'.format(k, v)
             else:
                 raise ValueError('No valid PayloadModule provided for exploit execution.')
-
-        # Set module params
-        for k in opts.keys():
-            options_str += 'set {} {}\n'.format(k, opts[k])
 
         # Run the module without directly opening a command line
         options_str += 'run -z'
