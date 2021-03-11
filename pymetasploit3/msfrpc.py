@@ -196,7 +196,8 @@ class MsfRpcClient(object):
         self.token = kwargs.get('token')
         self.encoding = kwargs.get('encoding', 'utf-8')
         self.headers = {"Content-type": "binary/message-pack"}
-        self.login(kwargs.get('username', 'msf'), password)
+        if self.token is None:
+            self.login(kwargs.get('username', 'msf'), password)
 
     def call(self, method, opts=None, is_raw=False):
         if not isinstance(opts, list):
