@@ -2219,6 +2219,8 @@ class MsfConsole(object):
         # Set payload params
         if mod.moduletype == 'exploit':
             opts['TARGET'] = mod.target
+            options_str += 'set TARGET {}\n'.format(mod.target)
+
             if 'DisablePayloadHandler' in opts and opts['DisablePayloadHandler']:
                 pass
             elif isinstance(payload, PayloadModule):
