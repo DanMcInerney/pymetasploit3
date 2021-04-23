@@ -1162,6 +1162,15 @@ class JobManager(MsfManager):
         """
         return self.rpc.call(MsfRpcMethod.JobInfo, [jobid])
 
+    def info_by_uuid(self, uuid):
+        """
+        Get job information for a particular job by its UUID.
+
+        Mandatory Argument:
+        - uuid : the UUID of the job.
+        """
+        return self.rpc.call(MsfRpcMethod.ModuleResults, [uuid])
+    
 
 class CoreManager(MsfManager):
 
