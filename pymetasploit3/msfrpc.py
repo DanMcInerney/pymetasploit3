@@ -1922,7 +1922,7 @@ class MeterpreterSession(MsfSession):
         else:
             return out
 
-    def run_shell_cmd_with_output(self, cmd, end_strs, exit_shell=True):
+    def run_shell_cmd_with_output(self, cmd, end_strs, exit_shell=True, timeout=301, timeout_exception=True):
         """
         Runs a Windows command from a meterpreter shell
 
@@ -1930,7 +1930,7 @@ class MeterpreterSession(MsfSession):
         exit_shell : Exit the shell inside meterpreter once command is done.
         """
         self.start_shell()
-        out = self.run_with_output(cmd, end_strs)
+        out = self.run_with_output(cmd, end_strs, timeout=timeout, timeout_exception=timeout_exception)
         if exit_shell == True:
             self.read()  # Clear buffer
             res = self.detach()
