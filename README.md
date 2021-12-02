@@ -34,7 +34,7 @@ msf> load msgrpc [Pass=yourpassword]
 ### msfrpcd
 This will start the RPC server on port 55553 and will just start the RPC server in the background
 ```bash
-$ msfrpcd -P yourpassword -S
+$ msfrpcd -P yourpassword 
 ```
 
 ## RPC client
