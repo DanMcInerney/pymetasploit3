@@ -1171,7 +1171,7 @@ class JobManager(MsfManager):
         - uuid : the UUID of the job.
         """
         return self.rpc.call(MsfRpcMethod.ModuleResults, [uuid])
-    
+
 
 class CoreManager(MsfManager):
 
@@ -1294,6 +1294,13 @@ class MsfModule(object):
                 act = 'ACTION'
                 self._moptions[act] = {"default": d_act}
                 self._runopts[act] = self._moptions[act]['default']
+
+    @property
+    def info(self):
+        """
+        Get information about the module
+        """
+        return self._info
 
     @property
     def options(self):
@@ -1649,7 +1656,7 @@ class ModuleManager(MsfManager):
         - match : the keyword to find (e.g. 'http')
         """
         return self.rpc.call(MsfRpcMethod.ModuleSearch, [match])
-        
+
     def compatible_sessions(self, mname):
         """
         Find Compatible session for specific modules.
@@ -1658,7 +1665,7 @@ class ModuleManager(MsfManager):
         - mname : the target module name
         """
         return self.rpc.call(MsfRpcMethod.ModuleCompatibleSessions, [mname])
-    
+
     def check(self, mtype, mname, **kwargs):
         """
         Runs the check method of a module.
