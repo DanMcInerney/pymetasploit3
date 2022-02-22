@@ -2210,7 +2210,7 @@ class MsfConsole(object):
             if c['id'] == self.cid:
                 return c['busy']
 
-    def run_module_with_output(self, mod, payload=None, run_as_job=False):
+    def run_module_with_output(self, mod, payload=None, run_as_job=False, timeout=301):
         """
         Execute a module and wait for the returned data
 
@@ -2257,9 +2257,13 @@ class MsfConsole(object):
             options_str += " -j"
         self.rpc.consoles.console(self.cid).write(options_str)
         data = ''
+        timer = 0
         while data == '' or self.rpc.consoles.console(self.cid).is_busy():
             time.sleep(1)
             data += self.rpc.consoles.console(self.cid).read()['data']
+            timer += 1
+            if timer > timeout:
+                break
         return data
 
 
