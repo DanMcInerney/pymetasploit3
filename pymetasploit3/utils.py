@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from typing import List, Tuple
+
 from optparse import OptionParser
 import msgpack
 
@@ -25,15 +27,43 @@ def parseargs():
         exit(-1)
     return o
 
-def convert(data, encoding="utf-8"):
+
+def try_convert(data: bytes, encodings: List[str]) -> Tuple[str, str]:
+    """Tries to decode the data with all the specified encodings, the order is perserved.
+
+    Parameters
+    ----------
+    data : bytes
+    encodings : List[str]
+
+    Returns
+    -------
+    Tuple[str, str]
+        The actual decoded data
+        The encoding used to decode the data
+    """
+
+    default_encoding: str = encodings[-1]
+    # Loop over all the encodings but the last one, which is the default one
+    for encoding in encodings[:-1]:
+        try:
+            decoded: str = data.decode(encoding=encoding)
+            return decoded, encoding
+        except Exception:
+            pass
+
+    # If we haven't returned, try with the last one (default) and don't catch the exception
+    return data.decode(encoding=default_encoding), default_encoding
+
+def convert(data, encodings: List[str]):
     """
     Converts all bytestrings to utf8
     """
-    if isinstance(data, bytes):  return data.decode(encoding=encoding)
-    if isinstance(data, list):   return list(map(lambda iter: convert(iter, encoding=encoding), data))
-    if isinstance(data, set):    return set(map(lambda iter: convert(iter, encoding=encoding), data))
-    if isinstance(data, dict):   return dict(map(lambda iter: convert(iter, encoding=encoding), data.items()))
-    if isinstance(data, tuple):  return map(lambda iter: convert(iter, encoding=encoding), data)
+    if isinstance(data, bytes):  return try_convert(data, encodings=encodings)[0]
+    if isinstance(data, list):   return list(map(lambda iter: convert(iter, encodings=encodings), data))
+    if isinstance(data, set):    return set(map(lambda iter: convert(iter, encodings=encodings), data))
+    if isinstance(data, dict):   return dict(map(lambda iter: convert(iter, encodings=encodings), data.items()))
+    if isinstance(data, tuple):  return map(lambda iter: convert(iter, encodings=encodings), data)
     return data
 
 def encode(data):

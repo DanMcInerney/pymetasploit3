@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from typing import List
+
 from numbers import Number
 from pymetasploit3.utils import *
 import requests
@@ -194,7 +196,7 @@ class MsfRpcClient(object):
         self.host = kwargs.get('server', '127.0.0.1')
         self.ssl = kwargs.get('ssl', False)
         self.token = kwargs.get('token')
-        self.encoding = kwargs.get('encoding', 'utf-8')
+        self.encodings: List[str] = kwargs.get('encodings', ['utf-8'])
         self.headers = {"Content-type": "binary/message-pack"}
         if self.token is None:
             self.login(kwargs.get('username', 'msf'), password)
@@ -224,7 +226,7 @@ class MsfRpcClient(object):
         if is_raw:
             return r.content
 
-        return convert(decode(r.content), self.encoding)  # convert all keys/vals to utf8
+        return convert(decode(r.content), self.encodings)  # convert all keys/vals to utf8
 
     @retry(tries=3, delay=1, backoff=2)
     def post_request(self, url, payload):
