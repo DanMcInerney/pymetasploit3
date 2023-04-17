@@ -9,7 +9,7 @@ def read(fname):
 
 
 setup(
-    name='pymetasploit3',
+    name='knock-pymetasploit3',
     author='Dan McInerney',
     version='1.0',
     author_email='danhmcinerney@gmail.com',
