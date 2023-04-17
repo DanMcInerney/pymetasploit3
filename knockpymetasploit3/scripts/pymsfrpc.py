@@ -5,8 +5,8 @@ from atexit import register
 from os import path
 import readline
 
-from pymetasploit3.msfrpc import MsfRpcClient, MsfRpcError
-from pymetasploit3.utils import parseargs
+from knockpymetasploit3.msfrpc import MsfRpcClient, MsfRpcError
+from knockpymetasploit3.utils import parseargs
 
 
 class MsfRpc(InteractiveConsole):

@@ -3,7 +3,7 @@
 import pytest
 import time
 import os
-from pymetasploit3.msfrpc import *
+from knockpymetasploit3.msfrpc import *
 
 
 @pytest.fixture()

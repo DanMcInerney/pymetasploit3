@@ -17,8 +17,8 @@ setup(
     license='GPL',
     packages=find_packages(exclude='tests'),
     scripts=[
-        'pymetasploit3/scripts/pymsfconsole.py',
-        'pymetasploit3/scripts/pymsfrpc.py'
+        'knockpymetasploit3/scripts/pymsfconsole.py',
+        'knockpymetasploit3/scripts/pymsfrpc.py'
     ],
     install_requires=[
         'msgpack',

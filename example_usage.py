@@ -1,4 +1,4 @@
-from pymetasploit3.msfrpc import MsfRpcClient
+from knockpymetasploit3.msfrpc import MsfRpcClient
 
 ## Usage example
 
