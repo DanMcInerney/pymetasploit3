@@ -47,13 +47,15 @@ def try_convert(data: bytes, encodings: List[str], decode_error_handling: str) -
     # Loop over all the encodings but the last one, which is the default one
     for encoding in encodings[:-1]:
         try:
-            decoded: str = data.decode(encoding=encoding, errors=decode_error_handling)
+            # We want it to be strict because we need to find the proper encoding
+            decoded: str = data.decode(encoding=encoding, errors="strict")
             return decoded, encoding
         except Exception:
             pass
 
     # If we haven't returned, try with the last one (default) and don't catch the exception
-    return data.decode(encoding=default_encoding), default_encoding
+    # Here and only here we use the parameter decode_error_handling which is controlled by the user of the library
+    return data.decode(encoding=default_encoding, errors=decode_error_handling), default_encoding
 
 def convert(data, encodings: List[str], decode_error_handling: str):
     """
