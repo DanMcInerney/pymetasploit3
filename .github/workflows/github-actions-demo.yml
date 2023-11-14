@@ -26,8 +26,7 @@ jobs:
         regex: false
         include: "setup.py"
     - name: Debug setup.py
-      run:
-        run: cat setup.py
+      run: cat setup.py
     - name: Build distribution
       run: python3 setup.py sdist
     - name: Publish package distributions to PyPI
