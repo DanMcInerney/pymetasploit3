@@ -21,7 +21,7 @@ jobs:
     - name: Increment version number
       uses: jacobtomlinson/gha-find-replace@v3
       with:
-        find: "VERSION_NUMBER"
+        find: "VERSION_MINOR_RELEASE"
         replace: ${{ github.run_attempt }}
         regex: false
         include: "setup.py"
