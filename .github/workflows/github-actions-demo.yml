@@ -24,7 +24,7 @@ jobs:
         find: "VERSION_NUMBER"
         replace: ${{ github.run_attempt }}
         regex: false
-        include: "./setup.py"
+        include: "setup.py"
     - name: Build distribution
       run: python3 setup.py sdist
     - name: Publish package distributions to PyPI
