@@ -13,3 +13,7 @@ twine = "*"
 
 [requires]
 python_version = "3.7"
+
+[pypi]
+username = __token__
+password = pypi-AgEIcHlwaS5vcmcCJGNiMDY5NmE1LTJhNWItNDY2YS1iN2JhLWNiZWRjNDA2MGJlMAACKlszLCI5ODcyNWUwMi00NzAwLTQ0YmEtYmM3Yi0wY2FlMDViNjBhYjMiXQAABiAwxOxzbZi-edIXq7RvHQ1y418jR1QSAi_acihYMltbKQ
