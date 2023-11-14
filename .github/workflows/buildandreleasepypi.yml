@@ -18,7 +18,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: master
-    - name: Increment version number
+    - name: Replace run number and attempt in setup.py
       uses: jacobtomlinson/gha-find-replace@v3
       with:
         find: "GITHUB_RUN_NUMBER.GITHUB_RUN_ATTEMPT"
