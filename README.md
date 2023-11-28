@@ -1,5 +1,5 @@
 Pymetasploit3
-=======
+=============
 
 Pymetasploit3 is a full-fledged Python3 Metasploit automation library. It can interact with Metasploit either through msfrpcd or the msgrpc plugin in msfconsole.
 

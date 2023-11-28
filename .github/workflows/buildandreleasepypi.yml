@@ -1,0 +1,33 @@
+name: Build and upload to PyPI
+run-name: Building and releasing to PyPI
+on:
+  push:
+    branches:
+      - master
+jobs:
+  pypi-publish:
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pymetasploit3
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+    steps:
+    - name: Checkout files
+      uses: actions/checkout@v4
+      with:
+        ref: master
+    - name: Replace run number and attempt in setup.py
+      uses: jacobtomlinson/gha-find-replace@v3
+      with:
+        find: "GITHUB_RUN_NUMBER.GITHUB_RUN_ATTEMPT"
+        replace: ${{ github.run_number }}.${{ github.run_attempt }}
+        regex: false
+        include: "setup.py"
+    - name: Debug setup.py
+      run: cat setup.py
+    - name: Build distribution
+      run: python3 setup.py sdist
+    - name: Publish package distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1

@@ -11,7 +11,7 @@ def read(fname):
 setup(
     name='pymetasploit3',
     author='Dan McInerney',
-    version='1.0',
+    version='1.0.GITHUB_RUN_NUMBER.GITHUB_RUN_ATTEMPT',
     author_email='danhmcinerney@gmail.com',
     description='A full-fledged msfrpc library for Metasploit framework.',
     license='GPL',
@@ -27,5 +27,6 @@ setup(
     ],
     url='https://github.com/DanMcInerney/pymetasploit3',
     download_url='https://github.com/DanMcInerney/pymetasploit3/zipball/master',
-    long_description=read('README.md')
+    long_description=read('README.md'),
+    long_description_content_type="text/markdown"
 )
