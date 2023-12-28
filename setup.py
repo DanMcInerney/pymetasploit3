@@ -11,7 +11,7 @@ def read(fname):
 setup(
     name='pymetasploit3',
     author='Dan McInerney',
-    version='1.0.4',
+    version='1.0.5',
     author_email='danhmcinerney@gmail.com',
     description='A full-fledged msfrpc library for Metasploit framework.',
     license='GPL',
