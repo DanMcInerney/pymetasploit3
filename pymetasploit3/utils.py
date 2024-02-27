@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from typing import List, Tuple
-
 from optparse import OptionParser
 import msgpack
 
@@ -28,13 +26,14 @@ def parseargs():
     return o
 
 
-def try_convert(data: bytes, encodings: List[str], decode_error_handling: str) -> Tuple[str, str]:
+def try_convert(data, encodings, decode_error_handling):
     """Tries to decode the data with all the specified encodings, the order is perserved.
 
     Parameters
     ----------
     data : bytes
     encodings : List[str]
+    decode_error_handling: str
 
     Returns
     -------
@@ -57,9 +56,18 @@ def try_convert(data: bytes, encodings: List[str], decode_error_handling: str) -
     # Here and only here we use the parameter decode_error_handling which is controlled by the user of the library
     return data.decode(encoding=default_encoding, errors=decode_error_handling), default_encoding
 
-def convert(data, encodings: List[str], decode_error_handling: str):
-    """
-    Converts all bytestrings to utf8
+def convert(data, encodings, decode_error_handling):
+    """Converts all bytestrings to utf8
+
+    Parameters
+    ----------
+    data : Any
+    encodings : List[str]
+    decode_error_handling : str
+
+    Returns
+    -------
+    Any
     """
     if isinstance(data, bytes):  return try_convert(data, encodings=encodings, decode_error_handling=decode_error_handling)[0]
     if isinstance(data, list):   return list(map(lambda iter: convert(iter, encodings=encodings, decode_error_handling=decode_error_handling), data))
