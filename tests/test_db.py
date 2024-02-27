@@ -2,7 +2,7 @@
 
 import pytest
 import os
-from knockpymetasploit3.msfrpc import *
+from pymetasploit3.msfrpc import *
 
 
 @pytest.fixture()

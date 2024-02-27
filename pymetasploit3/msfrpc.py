@@ -3,7 +3,7 @@
 from typing import List
 
 from numbers import Number
-from knockpymetasploit3.utils import *
+from pymetasploit3.utils import *
 import requests
 import uuid
 import time

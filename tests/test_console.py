@@ -1,7 +1,7 @@
 import pytest
 import time
 
-from knockpymetasploit3.msfrpc import *
+from pymetasploit3.msfrpc import *
 
 @pytest.fixture()
 def client():

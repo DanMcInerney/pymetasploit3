@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import pytest
-from knockpymetasploit3.msfrpc import *
+from pymetasploit3.msfrpc import *
 
 
 @pytest.fixture()
