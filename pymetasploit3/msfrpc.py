@@ -129,16 +129,19 @@ class MsfRpcMethod(object):
     ModuleNops = 'module.nops'
     ModulePlatforms = 'module.platforms'
     ModulePost = 'module.post'
+    ModuleInfoHTML = 'module.info_html'
     ModuleInfo = 'module.info'
     ModuleCompatiblePayloads = 'module.compatible_payloads'
+    ModuleCompatibleEvasionPayloads = 'module.compatible_evasion_payloads'
     ModuleCompatibleSessions = 'module.compatible_sessions'
     ModuleTargetCompatiblePayloads = 'module.target_compatible_payloads'
+    ModuleTargetCompatibleEvasionPayloads = 'module.target_compatible_evasion_payloads'
     ModuleOptions = 'module.options'
     ModuleExecute = 'module.execute'
     ModuleEncodeFormats = 'module.encode_formats'
     ModuleEncode = 'module.encode'
     ModuleSearch = 'module.search'
-    ModuleCompatibleSessions = 'module.compatible_sessions'
+    ModuleRunningStats = 'module.running_stats'
     ModuleCheck = 'module.check'
     ModuleResults = 'module.results'
     PluginLoad = 'plugin.load'
@@ -1518,6 +1521,14 @@ class ExploitModule(MsfModule):
         return self.targetpayloads(self.target)
 
     @property
+    def evasion_payloads(self):
+        """
+        A list of compatible evasion payloads.
+        """
+        return self.rpc.call(MsfRpcMethod.ModuleCompatibleEvasionPayloads, self.modulename)
+        
+
+    @property
     def target(self):
         return self._target
 
@@ -1535,6 +1546,15 @@ class ExploitModule(MsfModule):
         - t : the target ID (default: 0, e.g. 'Automatic')
         """
         return self.rpc.call(MsfRpcMethod.ModuleTargetCompatiblePayloads, [self.modulename, t])['payloads']
+
+    def targetevasionpayloads(self, t=0):
+        """
+        Returns a list of compatible evasion payloads for a given target ID.
+
+        Optional Keyword Arguments:
+        - t : the target ID (default: 0, e.g. 'Automatic')
+        """
+        return self.rpc.call(MsfRpcMethod.ModuleTargetCompatibleEvasionPayloads, [self.modulename, t])['payloads']
 
 
 class PostModule(MsfModule):
@@ -1678,6 +1698,24 @@ class ModuleManager(MsfManager):
         - **kwargs : the module's run options
         """
         return self.rpc.call(MsfRpcMethod.ModuleCheck, [mtype, mname, kwargs])
+    
+    def running_stats(self):
+        """
+        Returns the currently running module stats in each state.
+        """
+        
+        return self.rpc.call(MsfRpcMethod.ModuleRunningStats, [])
+    
+    def info_html(self, mtype, mname):
+        """
+        Returns detailed information about a module in HTML.
+        
+        Mandatory Arguments:
+        - mtype : Module type
+        - mname : Module name
+        """
+        
+        return self.rpc.call(MsfRpcMethod.ModuleInfoHTML, [mtype, mname])
 
     def results(self, uuid):
         return self.rpc.call(MsfRpcMethod.ModuleResults, [uuid])
