@@ -197,7 +197,8 @@ class MsfRpcClient(object):
         self.host = kwargs.get('server', '127.0.0.1')
         self.ssl = kwargs.get('ssl', False)
         self.token = kwargs.get('token')
-        self.encoding = kwargs.get('encoding', 'utf-8')
+        self.encodings = kwargs.get('encodings', ['utf-8'])
+        self.decode_error_handling: str = kwargs.get('decode_error_handling', 'strict')
         self.headers = {"Content-type": "binary/message-pack"}
         if self.token is None:
             self.login(kwargs.get('username', 'msf'), password)
@@ -227,7 +228,7 @@ class MsfRpcClient(object):
         if is_raw:
             return r.content
 
-        return convert(decode(r.content), self.encoding)  # convert all keys/vals to utf8
+        return convert(decode(r.content), self.encodings, self.decode_error_handling)  # convert all keys/vals to utf8
 
     @retry(tries=3, delay=1, backoff=2)
     def post_request(self, url, payload):

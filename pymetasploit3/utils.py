@@ -25,15 +25,55 @@ def parseargs():
         exit(-1)
     return o
 
-def convert(data, encoding="utf-8"):
+
+def try_convert(data, encodings, decode_error_handling):
+    """Tries to decode the data with all the specified encodings, the order is perserved.
+
+    Parameters
+    ----------
+    data : bytes
+    encodings : List[str]
+    decode_error_handling: str
+
+    Returns
+    -------
+    Tuple[str, str]
+        The actual decoded data
+        The encoding used to decode the data
     """
-    Converts all bytestrings to utf8
+
+    default_encoding: str = encodings[-1]
+    # Loop over all the encodings but the last one, which is the default one
+    for encoding in encodings[:-1]:
+        try:
+            # We want it to be strict because we need to find the proper encoding
+            decoded: str = data.decode(encoding=encoding, errors="strict")
+            return decoded, encoding
+        except Exception:
+            pass
+
+    # If we haven't returned, try with the last one (default) and don't catch the exception
+    # Here and only here we use the parameter decode_error_handling which is controlled by the user of the library
+    return data.decode(encoding=default_encoding, errors=decode_error_handling), default_encoding
+
+def convert(data, encodings, decode_error_handling):
+    """Converts all bytestrings to utf8
+
+    Parameters
+    ----------
+    data : Any
+    encodings : List[str]
+    decode_error_handling : str
+
+    Returns
+    -------
+    Any
     """
-    if isinstance(data, bytes):  return data.decode(encoding=encoding)
-    if isinstance(data, list):   return list(map(lambda iter: convert(iter, encoding=encoding), data))
-    if isinstance(data, set):    return set(map(lambda iter: convert(iter, encoding=encoding), data))
-    if isinstance(data, dict):   return dict(map(lambda iter: convert(iter, encoding=encoding), data.items()))
-    if isinstance(data, tuple):  return map(lambda iter: convert(iter, encoding=encoding), data)
+    if isinstance(data, bytes):  return try_convert(data, encodings=encodings, decode_error_handling=decode_error_handling)[0]
+    if isinstance(data, list):   return list(map(lambda iter: convert(iter, encodings=encodings, decode_error_handling=decode_error_handling), data))
+    if isinstance(data, set):    return set(map(lambda iter: convert(iter, encodings=encodings, decode_error_handling=decode_error_handling), data))
+    if isinstance(data, dict):   return dict(map(lambda iter: convert(iter, encodings=encodings, decode_error_handling=decode_error_handling), data.items()))
+    if isinstance(data, tuple):  return map(lambda iter: convert(iter, encodings=encodings, decode_error_handling=decode_error_handling), data)
     return data
 
 def encode(data):
